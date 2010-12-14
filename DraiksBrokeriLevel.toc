@@ -1,0 +1,16 @@
+﻿## Interface: 40000
+## Title: DraiksBrokeriLevel
+## Notes: Shows current iLevel
+## Author: Draik
+## X-eMail: timothy@minahan.net
+## X-Category: Miscellaneous
+## Version: 4.0.126
+## LoadManagers: AddonLoader
+## X-LoadOn-Always: delayed
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\libDataBroker-1.1.lua
+
+
+brokeriLevel.lua
