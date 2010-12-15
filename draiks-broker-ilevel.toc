@@ -4,9 +4,13 @@
 ## Author: Draik
 ## X-eMail: timothy@minahan.net
 ## X-Category: Miscellaneous
-## Version: 4.0.126
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
+## X-Curse-Project-Name: Draiks Broker iLevel
+## X-Curse-Project-ID: draiks-broker-ilevel
+## X-Curse-Repository-ID: wow/draiks-broker-ilevel/mainline
+## SavedVariables: characterclassTable characterNameTable characterilevelTable draiksAddonInitialised
+
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
