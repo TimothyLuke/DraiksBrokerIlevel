@@ -10,33 +10,31 @@ f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 
 
 f:SetScript("OnUpdate", function(self, elap)
-	elapsed = elapsed + elap
-	if elapsed < UPDATEPERIOD then return end
+    elapsed = elapsed + elap
+    if elapsed < UPDATEPERIOD then return end
 
-	elapsed = 0
-	iLevel = GetAverageItemLevel()
-	dataobj.text = string.format("Current ilevel: %.1f", iLevel)
-        addonLoadedBool = true
+    elapsed = 0
+    iLevel = GetAverageItemLevel()
 
-        if not draiksAddonInitialised  then
-         characterclassTable = {}
-         characterilevelTable = {}
-         characterNameTable = {}
-         draiksAddonLoadedBool = false
-         draiksAddonInitialised = true
-         ConsoleAddMessage("initialised")
-        end
-        draiksAddonLoadedBool = true
+    if not draiksAddonInitialised then
+        characterclassTable = {}
+        characterilevelTable = {}
+        characterNameTable = {}
         characterNameTable[name] = name;
-        characterilevelTable[name] = iLevel
         characterclassTable[name] = classFileName;
+        draiksAddonInitialised = true
+    end
+
+    characterilevelTable[name] = string.format("%.1f", iLevel)
+    dataobj.text = string.format("ilvl: %s", characterilevelTable[name]) 
+    draiksAddonLoadedBool = true
 end)
 
 function dataobj:OnTooltipShow()
   if addonLoadedBool then	
     for key,value in pairs(characterNameTable) do
       local color = RAID_CLASS_COLORS[characterclassTable[key]];
-      self:AddDoubleLine(characterNameTable[key], characterilevelTable[key], color.r, color.g, color.b, 255, 255, 255);
+      self:AddDoubleLine(characterNameTable[key], string.format("%.1f",characterilevelTable[key]), color.r, color.g, color.b, 255, 255, 255);
     end
   else	
     self:AddLine("Loading Characters");
