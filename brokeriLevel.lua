@@ -27,7 +27,7 @@ f:SetScript("OnUpdate", function(self, elap)
 
     characterilevelTable[name] = string.format("%.1f", iLevel)
     dataobj.text = string.format("ilvl: %s", characterilevelTable[name]) 
-    draiksAddonLoadedBool = true
+    addonLoadedBool = true
 end)
 
 function dataobj:OnTooltipShow()
