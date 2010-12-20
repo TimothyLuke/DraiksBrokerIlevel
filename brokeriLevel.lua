@@ -20,11 +20,10 @@ f:SetScript("OnUpdate", function(self, elap)
         characterclassTable = {}
         characterilevelTable = {}
         characterNameTable = {}
-        characterNameTable[name] = name;
-        characterclassTable[name] = classFileName;
         draiksAddonInitialised = true
     end
-
+    characterNameTable[name] = name;
+    characterclassTable[name] = classFileName;
     characterilevelTable[name] = string.format("%.1f", iLevel)
     dataobj.text = string.format("ilvl: %s", characterilevelTable[name]) 
     addonLoadedBool = true
