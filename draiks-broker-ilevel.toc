@@ -9,12 +9,16 @@
 ## X-Curse-Project-Name: Draiks Broker iLevel
 ## X-Curse-Project-ID: draiks-broker-ilevel
 ## X-Curse-Repository-ID: wow/draiks-broker-ilevel/mainline
-## SavedVariables: characterclassTable characterNameTable characterilevelTable draiksAddonInitialised
+## SavedVariables: draiksAddonInitialised ilvlDB
+
 
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1\libDataBroker-1.1.lua
+libs\LibQTip-1.0\LibQTip-1.0.lua
 
+
+embeds.xml
 
 brokeriLevel.lua

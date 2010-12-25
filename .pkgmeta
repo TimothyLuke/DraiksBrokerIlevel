@@ -8,3 +8,12 @@ externals:
     Lib/CallbackHandler-1.0:
         url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk
         tag: latest
+    Lib/AceADdon-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceAddon-3.0
+        tag: latest
+    Lib/AceDB-3.0:
+        url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDB-3.0
+        tag: latest
+    Lib/LibQTip-1.0:
+        url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+        tag: latest
