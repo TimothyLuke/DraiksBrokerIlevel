@@ -9,9 +9,6 @@ local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
 local LibQTip = LibStub('LibQTip-1.0')
 local dataobj = ldb:NewDataObject("iLevel", {type = "data source", text = "Current ilevel: 200"})
  
---local options = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
-
-
 
 
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
@@ -356,6 +353,9 @@ f:SetScript("OnUpdate", function(self, elap)
     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()
     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")
     addonLoadedBool = true
+
+
+
 end)
 
 
@@ -560,3 +560,25 @@ function DraiksBrokerDB:SetOption( option, value, ... )
 
 end
 
+function CalculateUnitItemLevel(unit)
+
+	if CanInspect(unit) and CheckInteractDistance(unit, 1) then	
+		NotifyInspect(unit)
+	
+		local t,c=0,0
+        	for i =1,18 do 
+			if i~=4 then 
+				local k=GetInventoryItemLink(unit,i) 
+				if k then 
+					local _,_,_,l=GetItemInfo(k) 
+					t=t+l 
+					c=c+1 
+				end 
+			end 
+		end 
+		if c>0 then 
+			print(t/c)
+                        return(t/c)
+		end
+	end
+end
