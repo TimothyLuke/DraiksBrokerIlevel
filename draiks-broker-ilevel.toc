@@ -6,9 +6,6 @@
 ## X-Category: Miscellaneous
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
-## X-Curse-Project-Name: Draiks Broker iLevel
-## X-Curse-Project-ID: draiks-broker-ilevel
-## X-Curse-Repository-ID: wow/draiks-broker-ilevel/mainline
 ## SavedVariables: draiksAddonInitialised ilvlDB
 
 
@@ -20,5 +17,7 @@ libs\LibQTip-1.0\LibQTip-1.0.lua
 
 
 embeds.xml
+
+DraiksBrokerDB-enUS.lua
 
 brokeriLevel.lua

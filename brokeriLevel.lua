@@ -8,64 +8,62 @@ local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
  -- Get a reference to the lib
 local LibQTip = LibStub('LibQTip-1.0')
 local dataobj = ldb:NewDataObject("iLevel", {type = "data source", text = "Current ilevel: 200"})
- 
+local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB") 
 
 
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 
 -- Setup Display Fonts
+-- Hunter
+hunterFont = CreateFont("hunterFont")
+hunterFont:SetFont(GameTooltipText:GetFont(), 10)
+hunterFont:SetTextColor(RAID_CLASS_COLORS["HUNTER"].r,RAID_CLASS_COLORS["HUNTER"].g,RAID_CLASS_COLORS["HUNTER"].g)
 
-    -- Hunter
-    hunterFont = CreateFont("hunterFont")
-    hunterFont:SetFont(GameTooltipText:GetFont(), 10)
-    hunterFont:SetTextColor(RAID_CLASS_COLORS["HUNTER"].r,RAID_CLASS_COLORS["HUNTER"].g,RAID_CLASS_COLORS["HUNTER"].g)
+-- Warlock
+warlockFont = CreateFont("warlockFont")
+warlockFont:SetFont(GameTooltipText:GetFont(), 10)
+warlockFont:SetTextColor(RAID_CLASS_COLORS["WARLOCK"].r,RAID_CLASS_COLORS["WARLOCK"].g,RAID_CLASS_COLORS["WARLOCK"].g)
 
-    -- Warlock
-    warlockFont = CreateFont("warlockFont")
-    warlockFont:SetFont(GameTooltipText:GetFont(), 10)
-    warlockFont:SetTextColor(RAID_CLASS_COLORS["WARLOCK"].r,RAID_CLASS_COLORS["WARLOCK"].g,RAID_CLASS_COLORS["WARLOCK"].g)
+-- Priest
+priestFont = CreateFont("priestFont")
+priestFont:SetFont(GameTooltipText:GetFont(), 10)
+priestFont:SetTextColor(RAID_CLASS_COLORS["PRIEST"].r,RAID_CLASS_COLORS["PRIEST"].g,RAID_CLASS_COLORS["PRIEST"].g)
 
-    -- Priest
-    priestFont = CreateFont("priestFont")
-    priestFont:SetFont(GameTooltipText:GetFont(), 10)
-    priestFont:SetTextColor(RAID_CLASS_COLORS["PRIEST"].r,RAID_CLASS_COLORS["PRIEST"].g,RAID_CLASS_COLORS["PRIEST"].g)
+-- Mage
+mageFont = CreateFont("mageFont")
+mageFont:SetFont(GameTooltipText:GetFont(), 10)
+mageFont:SetTextColor(RAID_CLASS_COLORS["MAGE"].r,RAID_CLASS_COLORS["MAGE"].g,RAID_CLASS_COLORS["MAGE"].g)
 
-    -- Mage
-    mageFont = CreateFont("mageFont")
-    mageFont:SetFont(GameTooltipText:GetFont(), 10)
-    mageFont:SetTextColor(RAID_CLASS_COLORS["MAGE"].r,RAID_CLASS_COLORS["MAGE"].g,RAID_CLASS_COLORS["MAGE"].g)
+-- Paladin
+paladinFont = CreateFont("paladinFont")
+paladinFont:SetFont(GameTooltipText:GetFont(), 10)
+paladinFont:SetTextColor(RAID_CLASS_COLORS["PALADIN"].r,RAID_CLASS_COLORS["PALADIN"].g,RAID_CLASS_COLORS["PALADIN"].g)
 
-    -- Paladin
-    paladinFont = CreateFont("paladinFont")
-    paladinFont:SetFont(GameTooltipText:GetFont(), 10)
-    paladinFont:SetTextColor(RAID_CLASS_COLORS["PALADIN"].r,RAID_CLASS_COLORS["PALADIN"].g,RAID_CLASS_COLORS["PALADIN"].g)
+-- Shaman
+shamanFont = CreateFont("shamanFont")
+shamanFont:SetFont(GameTooltipText:GetFont(), 10)
+shamanFont:SetTextColor(RAID_CLASS_COLORS["SHAMAN"].r,RAID_CLASS_COLORS["SHAMAN"].g,RAID_CLASS_COLORS["SHAMAN"].g)
 
-    -- Shaman
-    shamanFont = CreateFont("shamanFont")
-    shamanFont:SetFont(GameTooltipText:GetFont(), 10)
-    shamanFont:SetTextColor(RAID_CLASS_COLORS["SHAMAN"].r,RAID_CLASS_COLORS["SHAMAN"].g,RAID_CLASS_COLORS["SHAMAN"].g)
+-- Druid
+druidFont = CreateFont("druidFont")
+druidFont:SetFont(GameTooltipText:GetFont(), 10)
+druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].g)
 
-    -- Druid
-    druidFont = CreateFont("druidFont")
-    druidFont:SetFont(GameTooltipText:GetFont(), 10)
-    druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].g)
+-- deathknight
+deathknightFont = CreateFont("warlockFont")
+deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
+deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].g)
 
-    -- deathknight
-    deathknightFont = CreateFont("warlockFont")
-    deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
-    deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].g)
+-- Rogue
+rogueFont = CreateFont("rogueFont")
+rogueFont:SetFont(GameTooltipText:GetFont(), 10)
+rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].g)
 
-    -- Rogue
-    rogueFont = CreateFont("rogueFont")
-    rogueFont:SetFont(GameTooltipText:GetFont(), 10)
-    rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].g)
-
-    -- Warrior
-    warriorFont = CreateFont("warlockFont")
-    warriorFont:SetFont(GameTooltipText:GetFont(), 10)
-    warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].g)
-
+-- Warrior
+warriorFont = CreateFont("warlockFont")
+warriorFont:SetFont(GameTooltipText:GetFont(), 10)
+warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].g)
 
 CLASS_FONTS = {
     ["HUNTER"] = hunterFont,
@@ -79,7 +77,6 @@ CLASS_FONTS = {
     ["WARRIOR"] = warriorFont,
     ["DEATHKNIGHT"] = deathknightFont,
 };
-
 
 
 
@@ -120,7 +117,8 @@ function DraiksBrokerDB:OnInitialize()
 			sort_type		   = "alpha",
 			use_icons		   = false,
                         display_bars               = false,
-			show_level		 = false,
+			show_level		   = false,
+			calculate_own_ilvl	   = false,
 			is_ignored = {
 				-- Realm
 				['*'] = {
@@ -140,50 +138,62 @@ function DraiksBrokerDB:OnInitialize()
    self.faction = UnitFactionGroup("player")
    self.realm = GetRealmName()
    self.pc = UnitName("player")
-   self.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()    
+   if self.db.profile.options.calculate_own_ilvl then
+	self.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)    
+   else
+     	self.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()    
+   end
    self.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")    
    self.db.global.data[self.faction][self.realm][self.pc].class = classFileName    
    
    local options = {
-	name = "Draiks Broker ILevel",
+	name = L["Draiks Broker ILevel"],
 	childGroups = 'tab',
 	type = 'group',
 	order = 1,
 	args = {
 		display = {
 			type = 'group', 
-			name = "Display", 
-			desc = "Specify what to display", 
+			name = L["Display"], 
+			desc = L["Specify what to display"], 
 			args = {
 				main = {
 					type = 'header', 
-					name = "Main Settings", 
+					name = L["Main Settings"], 
 					order     = 1,
 				},
 				show_level = {
-					name      = "Show Level",
-					desc      = "Show Character Levels",
+					name      = L["Show Level"],
+					desc      = L["Show Character Levels"],
 					type      = 'toggle',
 					get       = function() return DraiksBrokerDB:GetOption('show_level') end,
 					set       = function(info, v) DraiksBrokerDB:SetOption('show_level',v) end,
 					order     = 1.1,
 				},
+				calculate_own_ilvl = {
+					name      = L["Calculate Own Average iLevel"],
+					desc      = L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"],
+					type      = 'toggle',
+					get       = function() return DraiksBrokerDB:GetOption('calculate_own_ilvl') end,
+					set       = function(info, v) DraiksBrokerDB:SetOption('calculate_own_ilvl',v) end,
+					order     = 1.2,
+				},
 				faction_and_realms = {
 					type = 'header', 
-					name = "Factions and Realms", 
+					name = L["Factions and Realms"], 
 					order     = 2,
 				},
 				all_factions = {
-					name      = "All Factions",
-					desc      = "All factions will be displayed",
+					name      = L["All Factions"],
+					desc      = L["All factions will be displayed"],
 					type      = 'toggle',
 					get       = function() return DraiksBrokerDB:GetOption('all_factions') end,
 					set       = function(info, v) DraiksBrokerDB:SetOption('all_factions',v) end,
 					order     = 2.1,
 				},
 				all_realms = {
-					name      = "All Realms",
-					desc      = "All realms will be displayed",
+					name      = L["All Realms"],
+					desc      = L["All realms will be displayed"],
 					type      = 'toggle',
 					get       = function() return DraiksBrokerDB:GetOption('all_realms') end,
 					set       = function(info, v) DraiksBrokerDB:SetOption('all_realms',v) end,
@@ -191,26 +201,26 @@ function DraiksBrokerDB:OnInitialize()
 				},
 --				sort = {
 --					type = 'header', 
---					name = "Sort Order", 
+--					name = L["Sort Order"], 
 --					order = 9,
 --				},
 --				sort_type = {
---					name      = "Sort Type",
---					desc      = "Select the sort type",
+--					name      = L["Sort Type"],
+--					desc      = L["Select the sort type"],
 --					type      = 'select',
 --					get       = function() return DraiksBrokerDB:GetOption('sort_type') end,
 --					set       = function(info, v) DraiksBrokerDB:SetOption('sort_type',v) end,
 --					values  = {
---						["alpha"] 	= "By name",
---						["level"] 	= "By level",
---						["ilvl"]	= "By Item Level",
---						["coin"]	= "By money",
+--						["alpha"] 	= L["By Name"],
+--						["level"] 	= L["By Level"],
+--						["ilvl"]	= L["By Item Level"],
+--						["coin"]	= L["By Money"],
 --					},
 --					order     = 9.1,
 --				},
 --				reverse_sort = {
---					name      = "Sort in reverse order",
---					desc      = "Use the curent sort type in reverse order",
+--					name      = L["Sort in reverse order"],
+--					desc      = L["Use the curent sort type in reverse order"],
 --					type      = 'toggle',
 --					get       = function() return DraiksBrokerDB:GetOption('reverse_sort') end,
 --					set       = function(info, v) DraiksBrokerDB:SetOption('reverse_sort',v) end,
@@ -219,17 +229,17 @@ function DraiksBrokerDB:OnInitialize()
 			}
 		},
 		ignore = {
-			name    = "Ignore Characters",
-			desc    = "Hide characters from display",
+			name    = L["Ignore Characters"],
+			desc    = L["Hide characters from display"],
 			type    = 'group',
 			args    = {
 				realm = {
-					name = "Realm",
+					name = L["Realm"],
 					type = 'description',
 					order = .5,
 				},
 				name = {
-					name = "Character Name",
+					name = L["Character Name"],
 					type = 'description',
 					order = .7,
 				},
@@ -238,12 +248,12 @@ function DraiksBrokerDB:OnInitialize()
 		},
 		ui = {
 			type = 'group', 
-			name = "UI", 
-			desc = "Set UI options", 
+			name = L["UI"], 
+			desc = L["Set UI options"], 
 			args = {
 --				tooltip_scale = {
---					name      = "Scale",
---					desc      = "Scale the tooltip (70% to 150%)",
+--					name      = L["Scale"],
+--					desc      = L["Scale the tooltip (70% to 150%)"],
 --					width	  = "full",
 --					type      = 'range',
 --					min	  = .7,
@@ -255,8 +265,8 @@ function DraiksBrokerDB:OnInitialize()
 --					order     = .6,
 --				},
 --				opacity = {
---					name      = "Opacity",
---					desc      = "% opacity of the tooltip background",
+--					name      = L["Opacity"],
+--					desc      = L["% opacity of the tooltip background"],
 --					width	  = "full",
 --					type      = 'range',
 --					min	  = 0,
@@ -268,8 +278,8 @@ function DraiksBrokerDB:OnInitialize()
 --					order     = .7,
 --				},
 				display_bars = {
-					name      = "Show Bars",
-					desc      = "Display Table Rows as colored bars with white text",
+					name      = L["Show Bars"],
+					desc      = L["Display Table Rows as colored bars with white text"],
 					type      = 'toggle',
 					get       = function() return DraiksBrokerDB:GetOption('display_bars') end,
 					set       = function(info, v) DraiksBrokerDB:SetOption('display_bars',v) end,
@@ -323,13 +333,13 @@ function DraiksBrokerDB:OnInitialize()
    options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
    local AceConfig = LibStub("AceConfig-3.0")
  
-   AceConfig:RegisterOptionsTable("Draiks Broker Ilevel", options, {"dil", "draiksbrokerilevel", "draiksilvl", "draiksilevel"})
+   AceConfig:RegisterOptionsTable(L["Draiks Broker ILevel"], options, {L["dil"], L["draiksbrokerilevel"], L["draiksilvl"], L["draiksilevel"]})
 
 
    DraiksBrokerDB.config_menu = options
 	
-   LibStub("AceConfig-3.0"):RegisterOptionsTable("Draiks Broker Ilevel", options)
-   DraiksBrokerDB.options_frame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Draiks Broker Ilevel")
+   LibStub("AceConfig-3.0"):RegisterOptionsTable(L["Draiks Broker ILevel"], options)
+   DraiksBrokerDB.options_frame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(L["Draiks Broker ILevel"])
 
 end
 
@@ -350,7 +360,11 @@ f:SetScript("OnUpdate", function(self, elap)
     end
 
     dataobj.text = string.format("ilvl: %.1f", DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl) 
-    DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()
+    if DraiksBrokerDB.db.profile.options.calculate_own_ilvl then
+	DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)    
+    else
+     	DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()    
+    end
     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")
     addonLoadedBool = true
 
@@ -399,7 +413,7 @@ function dataobj:OnEnter()
    
   -- Add an header filling only the first two columns
   local line, column = tooltip:AddHeader()
-  tooltip:SetCell(line, 1, "Character iLevel Breakdown", "CENTER", 3)
+  tooltip:SetCell(line, 1, L["Character iLevel Breakdown"], "CENTER", 3)
 	
   tooltip:AddSeparator()  
 
@@ -577,7 +591,7 @@ function CalculateUnitItemLevel(unit)
 			end 
 		end 
 		if c>0 then 
-			print(t/c)
+			--print(t/c)
                         return(t/c)
 		end
 	end
