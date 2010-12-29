@@ -19,5 +19,7 @@ libs\LibQTip-1.0\LibQTip-1.0.lua
 embeds.xml
 
 DraiksBrokerDB-enUS.lua
+DraiksBrokerDB-deDE.lua
+DraiksBrokerDB-frFR.lua
 
 brokeriLevel.lua
