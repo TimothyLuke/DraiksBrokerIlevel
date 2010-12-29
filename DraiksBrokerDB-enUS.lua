@@ -39,3 +39,5 @@ L["draiksilevel"] = true
 L["Character iLevel Breakdown"] = true
 L["Calculate Own Average iLevel"] = true
 L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"] = true
+L["Show Party"] = true
+L["Show the ilvl of party and raid members from your server."] = true

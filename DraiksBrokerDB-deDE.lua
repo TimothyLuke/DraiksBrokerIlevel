@@ -40,3 +40,5 @@ L["draiksilevel"] = true
 L["Character iLevel Breakdown"] = "Buchstabe iLevel Zusammenbruch"
 L["Calculate Own Average iLevel"] = "Berechnen Sie, durchschnittliches iLevel zu besitzen"
 L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"] = "Berechnen Sie Ihr eigenes durchschnittliches iLevel, das basiert auf, was Sie ausgerüstet haben, anstatt, den Blizzard zu benutzen, der durchschnittliches iLevel berichtet wird"
+L["Show Party"] = "Zeigen Sie Partei"
+L["Show the ilvl of party and raid members from your server."] = "Zeigen Sie das ilvl der Partei- und Überfallmitglieder von Ihrem Bediener"

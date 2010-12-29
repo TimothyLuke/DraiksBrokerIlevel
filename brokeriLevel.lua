@@ -123,6 +123,7 @@ function DraiksBrokerDB:OnInitialize()
                         display_bars               = false,
 			show_level		   = false,
 			calculate_own_ilvl	   = false,
+			show_party		   = true,
 			is_ignored = {
 				-- Realm
 				['*'] = {
@@ -174,13 +175,21 @@ function DraiksBrokerDB:OnInitialize()
 					set       = function(info, v) DraiksBrokerDB:SetOption('show_level',v) end,
 					order     = 1.1,
 				},
+				show_party = {
+					name      = L["Show Party"],
+					desc      = L["Show the ilvl of party and raid members from your server."],
+					type      = 'toggle',
+					get       = function() return DraiksBrokerDB:GetOption('show_party') end,
+					set       = function(info, v) DraiksBrokerDB:SetOption('show_party',v) end,
+					order     = 1.2,
+				},
 				calculate_own_ilvl = {
 					name      = L["Calculate Own Average iLevel"],
 					desc      = L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"],
 					type      = 'toggle',
 					get       = function() return DraiksBrokerDB:GetOption('calculate_own_ilvl') end,
 					set       = function(info, v) DraiksBrokerDB:SetOption('calculate_own_ilvl',v) end,
-					order     = 1.2,
+					order     = 1.3,
 				},
 				faction_and_realms = {
 					type = 'header', 
