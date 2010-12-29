@@ -598,9 +598,10 @@ function CalculateUnitItemLevel(unit)
 			if i~=4 then 
 				local k=GetInventoryItemLink(unit,i) 
 				if k then 
-					local _,_,_,l=GetItemInfo(k) 
+					local iname,_,_,l=GetItemInfo(k) 
 					t=t+l 
-					c=c+1 
+					c=c+1
+                                        print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
 				end 
 			end 
 		end 
