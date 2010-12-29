@@ -1,5 +1,5 @@
 local UPDATEPERIOD, elapsed = 0.5, 0
-local DraiksBrokerDB = LibStub("AceAddon-3.0"):NewAddon("DraiksBrokerDB", "AceEvent-3.0", "AceTimer-3.0")
+local DraiksBrokerDB = LibStub("AceAddon-3.0"):NewAddon("DraiksBrokerDB", "AceEvent-3.0")
 local class, classFileName = UnitClass("player");
 local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
@@ -606,13 +606,25 @@ end
 
 
 function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
-    Scan_Party()
+    Scan_Party("party", ...)
 end
 
 function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
-    Scan_Party()
+    Scan_Party("raid", ...)
 end
 
-function Scan_Party()
-    print("Event Captured")
+function Scan_Party(type, ...)
+    print("Event Captured of type: ", type)
+    if not DraiksBrokerDB.groupformed then
+        DraiksBrokerDB.groupformeddate = date("%m/%d/%y %H:%M:%S")
+        DraiksBrokerDB.groupformed = true
+        print("Setting time to ", DraiksBrokerDB.groupformeddate)
+    end
+    print("Raid Members: ",  GetNumRaidMembers())
+    print("Party Members: ", GetNumPartyMembers())
+    print("Real Party Members: ", GetRealNumPartyMembers())
+    for i=1, GetNumPartyMembers() do
+       print(CalculateUnitItemLevel("party"..i))
+       i = i +1
+    end
 end
