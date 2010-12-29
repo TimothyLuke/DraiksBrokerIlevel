@@ -1,5 +1,5 @@
 local UPDATEPERIOD, elapsed = 0.5, 0
-local DraiksBrokerDB = LibStub("AceAddon-3.0"):NewAddon("DraiksBrokerDB")
+local DraiksBrokerDB = LibStub("AceAddon-3.0"):NewAddon("DraiksBrokerDB", "AceEvent-3.0", "AceTimer-3.0")
 local class, classFileName = UnitClass("player");
 local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
@@ -13,6 +13,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
 
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
+
 
 -- Setup Display Fonts
 -- Hunter
@@ -81,6 +82,9 @@ CLASS_FONTS = {
 
 
 function DraiksBrokerDB:OnInitialize()
+
+    self:RegisterEvent("PARTY_MEMBERS_CHANGED")
+    self:RegisterEvent("RAID_ROSTER_UPDATE")
 
     -- Default values for the save variables
     default_options = {
@@ -484,6 +488,7 @@ function dataobj:OnLeave()
    self.tooltip = nil
 end
 
+
 function DraiksBrokerDB:GetOption( option, ... )
 
 	-- is_ignored has multiple parameters
@@ -595,4 +600,19 @@ function CalculateUnitItemLevel(unit)
                         return(t/c)
 		end
 	end
+end
+
+
+
+
+function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
+    Scan_Party()
+end
+
+function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
+    Scan_Party()
+end
+
+function Scan_Party()
+    print("Event Captured")
 end
