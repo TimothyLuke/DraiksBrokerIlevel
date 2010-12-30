@@ -15,6 +15,7 @@ f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 
 
+
 -- Setup Display Fonts
 -- Hunter
 hunterFont = CreateFont("hunterFont")
@@ -150,6 +151,9 @@ function DraiksBrokerDB:OnInitialize()
    end
    self.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")    
    self.db.global.data[self.faction][self.realm][self.pc].class = classFileName    
+   self.db.global.data[self.faction][self.realm][self.pc].key = UnitGUID("player")    
+   
+   self.sort_table = {}
    
    local options = {
 	name = L["Draiks Broker ILevel"],
@@ -212,33 +216,33 @@ function DraiksBrokerDB:OnInitialize()
 					set       = function(info, v) DraiksBrokerDB:SetOption('all_realms',v) end,
 					order     = 2.2,
 				},
---				sort = {
---					type = 'header', 
---					name = L["Sort Order"], 
---					order = 9,
---				},
---				sort_type = {
---					name      = L["Sort Type"],
---					desc      = L["Select the sort type"],
---					type      = 'select',
---					get       = function() return DraiksBrokerDB:GetOption('sort_type') end,
---					set       = function(info, v) DraiksBrokerDB:SetOption('sort_type',v) end,
---					values  = {
---						["alpha"] 	= L["By Name"],
---						["level"] 	= L["By Level"],
---						["ilvl"]	= L["By Item Level"],
+				sort = {
+					type = 'header', 
+					name = L["Sort Order"], 
+					order = 9,
+				},
+				sort_type = {
+					name      = L["Sort Type"],
+					desc      = L["Select the sort type"],
+					type      = 'select',
+					get       = function() return DraiksBrokerDB:GetOption('sort_type') end,
+					set       = function(info, v) DraiksBrokerDB:SetOption('sort_type',v) end,
+					values  = {
+						["alpha"] 	= L["By Name"],
+						["level"] 	= L["By Level"],
+						["ilvl"]	= L["By Item Level"],
 --						["coin"]	= L["By Money"],
---					},
---					order     = 9.1,
---				},
---				reverse_sort = {
---					name      = L["Sort in reverse order"],
---					desc      = L["Use the curent sort type in reverse order"],
---					type      = 'toggle',
---					get       = function() return DraiksBrokerDB:GetOption('reverse_sort') end,
---					set       = function(info, v) DraiksBrokerDB:SetOption('reverse_sort',v) end,
---					order     = 9.2,
---				}
+					},
+					order     = 9.1,
+				},
+				reverse_sort = {
+					name      = L["Sort in reverse order"],
+					desc      = L["Use the curent sort type in reverse order"],
+					type      = 'toggle',
+					get       = function() return DraiksBrokerDB:GetOption('reverse_sort') end,
+					set       = function(info, v) DraiksBrokerDB:SetOption('reverse_sort',v) end,
+					order     = 9.2,
+				}
 			}
 		},
 		ignore = {
@@ -392,6 +396,8 @@ function dataobj:OnEnter()
   local tooltip = LibQTip:Acquire("DraiksBrokerDB", 3, "LEFT", "CENTER", "RIGHT")
   self.tooltip = tooltip 
 
+  tooltip:Clear()
+
     -- New font looking like GameTooltipText but White with height 12
     local white10Font = CreateFont("white10Font")
     white10Font:SetFont(GameTooltipText:GetFont(), 10)
@@ -427,48 +433,59 @@ function dataobj:OnEnter()
   -- Add an header filling only the first two columns
   local line, column = tooltip:AddHeader()
   tooltip:SetCell(line, 1, L["Character iLevel Breakdown"], "CENTER", 3)
-	
+  names = {}	
   tooltip:AddSeparator()  
 
     for faction, faction_table in pairs (DraiksBrokerDB.db.global.data) do
-	
+
       if DraiksBrokerDB:GetOption('all_factions') or faction == DraiksBrokerDB.faction then
         if faction == "Horde" then
             tooltip:SetHeaderFont(hordeFont)
         else
             tooltip:SetHeaderFont(allianceFont)
         end
-        tooltip:AddHeader(faction)   
+        factionline = tooltip:AddHeader(faction)   
+        factionentries = nil
         for realm, realm_table in pairs (faction_table) do
           if DraiksBrokerDB:GetOption('all_realms') or realm == DraiksBrokerDB.realm then
             tooltip:SetHeaderFont(green12Font)
-            tooltip:AddHeader(realm)
+            realmline = tooltip:AddHeader(realm)
+	    realmentries = nil
+            DraiksBrokerDB:FetchOrderedNames(names, realm_table)
+	    for _,name in ipairs (names) do
 
-            for pc, pc_table in pairs (realm_table) do
-                if not DraiksBrokerDB:GetOption('is_ignored', realm, pc) then
-                    local color = RAID_CLASS_COLORS[pc_table.class];
-                    --self:AddDoubleLine(pc, string.format("%.1f",pc_table.ilvl), color.r, color.g, color.b, 1, 1, 1) 
+		if not DraiksBrokerDB:GetOption('is_ignored', realm, name) then
                     local line, column = tooltip:AddLine()
                     if DraiksBrokerDB.db.profile.options.display_bars  then 
-                        tooltip:SetCell(line, 1, pc, white10Font)
-                        tooltip:SetCell(line, 3, string.format("%.1f",pc_table.ilvl), white10font)
+                        color = RAID_CLASS_COLORS[DraiksBrokerDB.db.global.data[faction][realm][name].class]
+			tooltip:SetCell(line, 1, name, white10Font)
+                        tooltip:SetCell(line, 3, string.format("%.1f", DraiksBrokerDB.db.global.data[faction][realm][name].ilvl), white10font)
                         tooltip:SetLineColor(line, color.r, color.g, color.b)
 		        if DraiksBrokerDB.db.profile.options.show_level then
-                    	    tooltip:SetCell(line, 2, pc_table.level, white10Font)
+                    	    tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data[faction][realm][name].level, white10Font)
                         end 
                     else
-                        tooltip:SetCell(line, 1, pc, CLASS_FONTS[pc_table.class])
-                        tooltip:SetCell(line, 3, string.format("%.1f",pc_table.ilvl), CLASS_FONTS[pc_table.class])
+                        tooltip:SetCell(line, 1, name, CLASS_FONTS[DraiksBrokerDB.db.global.data[faction][realm][name].class])
+                        tooltip:SetCell(line, 3, string.format("%.1f",DraiksBrokerDB.db.global.data[faction][realm][name].ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data[faction][realm][name].class])
 		        if DraiksBrokerDB.db.profile.options.show_level then
-                    	    tooltip:SetCell(line, 2, pc_table.level, CLASS_FONTS[pc_table.class])
+                    	    tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data[faction][realm][name].level, CLASS_FONTS[DraiksBrokerDB.db.global.data[faction][realm][name].class])
                         end 
 
                     end
+		    realmentries = true
+		    factionentries = true
                 end
+            end
+            if not realmentries then
+		tooltip.RemoveLine(realmline)
             end
           end
         end
-        tooltip:AddLine(" ")
+        if not factionentries then
+  		tooltip.RemoveLine(factionline)
+        else
+	        tooltip:AddLine(" ")
+	end
       end
     end
 
@@ -560,9 +577,8 @@ function DraiksBrokerDB:SetOption( option, value, ... )
 	    else
 	    	self.db.profile.options.sort_type = value
 	    end
-
+           
 	    already_set = true
-
 	-- Modify the direction of the sort
 	elseif option == 'reverse_sort' then
 		local sort_type
@@ -577,7 +593,6 @@ function DraiksBrokerDB:SetOption( option, value, ... )
 		else
 			self.db.profile.options.sort_type = sort_type
 		end
-
 		already_set = true
         end
 
@@ -587,6 +602,50 @@ function DraiksBrokerDB:SetOption( option, value, ... )
 	end
 
 end
+
+function DraiksBrokerDB:FetchOrderedNames(names, characters)
+	wipe(names)
+	for name, name_table in pairs(characters) do
+		table.insert(names, name)
+	end
+	DraiksBrokerDB.sort_table = characters
+        if self.db.profile.options.sort_type == "alpha" then
+	    table.sort(names)
+	elseif self.db.profile.options.sort_type == "rev-alpha" then
+	    table.sort(names, revAlphaSort)
+	elseif self.db.profile.options.sort_type == "rev-level" then
+	    table.sort(names, revlevelSort)
+	elseif self.db.profile.options.sort_type == "level" then
+	    table.sort(names, levelSort)
+	elseif self.db.profile.options.sort_type == "rev-ilvl" then
+	    table.sort(names, revilvlSort)
+	elseif self.db.profile.options.sort_type == "ilvl" then
+	    table.sort(names, ilvlSort)
+	end
+end
+
+
+
+function revAlphaSort(a,b)
+	return b < a
+end
+
+function revlevelSort(a,b)
+  return DraiksBrokerDB.sort_table[b].level < DraiksBrokerDB.sort_table[a].level
+end
+
+function levelSort(a,b)
+  return DraiksBrokerDB.sort_table[a].level < DraiksBrokerDB.sort_table[b].level
+end
+
+function revilvlSort(a,b)
+  return DraiksBrokerDB.sort_table[b].ilvl < DraiksBrokerDB.sort_table[a].ilvl
+end
+
+function ilvlSort(a,b)
+  return DraiksBrokerDB.sort_table[a].ilvl < DraiksBrokerDB.sort_table[b].ilvl
+end
+
 
 function CalculateUnitItemLevel(unit)
 
@@ -634,7 +693,8 @@ function Scan_Party(type, ...)
     print("Party Members: ", GetNumPartyMembers())
     print("Real Party Members: ", GetRealNumPartyMembers())
     for i=1, GetNumPartyMembers() do
-       print(CalculateUnitItemLevel("party"..i))
+        print (GetUnitName("party"..i))
+	print(CalculateUnitItemLevel("party"..i))
        i = i +1
     end
 end
