@@ -20,52 +20,52 @@ f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 -- Hunter
 hunterFont = CreateFont("hunterFont")
 hunterFont:SetFont(GameTooltipText:GetFont(), 10)
-hunterFont:SetTextColor(RAID_CLASS_COLORS["HUNTER"].r,RAID_CLASS_COLORS["HUNTER"].g,RAID_CLASS_COLORS["HUNTER"].g)
+hunterFont:SetTextColor(RAID_CLASS_COLORS["HUNTER"].r,RAID_CLASS_COLORS["HUNTER"].g,RAID_CLASS_COLORS["HUNTER"].b)
 
 -- Warlock
 warlockFont = CreateFont("warlockFont")
 warlockFont:SetFont(GameTooltipText:GetFont(), 10)
-warlockFont:SetTextColor(RAID_CLASS_COLORS["WARLOCK"].r,RAID_CLASS_COLORS["WARLOCK"].g,RAID_CLASS_COLORS["WARLOCK"].g)
+warlockFont:SetTextColor(RAID_CLASS_COLORS["WARLOCK"].r,RAID_CLASS_COLORS["WARLOCK"].g,RAID_CLASS_COLORS["WARLOCK"].b)
 
 -- Priest
 priestFont = CreateFont("priestFont")
 priestFont:SetFont(GameTooltipText:GetFont(), 10)
-priestFont:SetTextColor(RAID_CLASS_COLORS["PRIEST"].r,RAID_CLASS_COLORS["PRIEST"].g,RAID_CLASS_COLORS["PRIEST"].g)
+priestFont:SetTextColor(RAID_CLASS_COLORS["PRIEST"].r,RAID_CLASS_COLORS["PRIEST"].g,RAID_CLASS_COLORS["PRIEST"].b)
 
 -- Mage
 mageFont = CreateFont("mageFont")
 mageFont:SetFont(GameTooltipText:GetFont(), 10)
-mageFont:SetTextColor(RAID_CLASS_COLORS["MAGE"].r,RAID_CLASS_COLORS["MAGE"].g,RAID_CLASS_COLORS["MAGE"].g)
+mageFont:SetTextColor(RAID_CLASS_COLORS["MAGE"].r,RAID_CLASS_COLORS["MAGE"].g,RAID_CLASS_COLORS["MAGE"].b)
 
 -- Paladin
 paladinFont = CreateFont("paladinFont")
 paladinFont:SetFont(GameTooltipText:GetFont(), 10)
-paladinFont:SetTextColor(RAID_CLASS_COLORS["PALADIN"].r,RAID_CLASS_COLORS["PALADIN"].g,RAID_CLASS_COLORS["PALADIN"].g)
+paladinFont:SetTextColor(RAID_CLASS_COLORS["PALADIN"].r,RAID_CLASS_COLORS["PALADIN"].g,RAID_CLASS_COLORS["PALADIN"].b)
 
 -- Shaman
 shamanFont = CreateFont("shamanFont")
 shamanFont:SetFont(GameTooltipText:GetFont(), 10)
-shamanFont:SetTextColor(RAID_CLASS_COLORS["SHAMAN"].r,RAID_CLASS_COLORS["SHAMAN"].g,RAID_CLASS_COLORS["SHAMAN"].g)
+shamanFont:SetTextColor(RAID_CLASS_COLORS["SHAMAN"].r,RAID_CLASS_COLORS["SHAMAN"].g,RAID_CLASS_COLORS["SHAMAN"].b)
 
 -- Druid
 druidFont = CreateFont("druidFont")
 druidFont:SetFont(GameTooltipText:GetFont(), 10)
-druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].g)
+druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].b)
 
 -- deathknight
 deathknightFont = CreateFont("warlockFont")
 deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
-deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].g)
+deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].b)
 
 -- Rogue
 rogueFont = CreateFont("rogueFont")
 rogueFont:SetFont(GameTooltipText:GetFont(), 10)
-rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].g)
+rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].b)
 
 -- Warrior
 warriorFont = CreateFont("warlockFont")
 warriorFont:SetFont(GameTooltipText:GetFont(), 10)
-warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].g)
+warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].b)
 
 CLASS_FONTS = {
     ["HUNTER"] = hunterFont,
@@ -103,19 +103,19 @@ function DraiksBrokerDB:OnInitialize()
 						last_update                = 0,
 					}
 				}
-			}
-		},
-		data = {
-			-- Name
-			['*'] = {
-				-- DateTime
+			},
+			partyData = {
+				-- Name
 				['*'] = {
-					class                      = "",   -- English class name
-					level                      = 0,
-					ilvl                       = 0,
-					GUID		 	   = 0
+					-- DateTime
+					['*'] = {
+						class                      = "",   -- English class name
+						level                      = 0,
+						ilvl                       = 0,
+						GUID		 	   = 0
+					}
 				}
-			}
+			},
 		},
                 settings = {
                         addonVersion = 1.5
@@ -450,7 +450,8 @@ function dataobj:OnEnter()
 
     for faction, faction_table in pairs (DraiksBrokerDB.db.global.data) do
 
-      if DraiksBrokerDB:GetOption('all_factions') or faction == DraiksBrokerDB.faction then
+      if DraiksBrokerDB:GetOption('all_factions') or faction == DraiksBrokerDB.faction  then 
+       if faction ~= "partyData" then
         if faction == "Horde" then
             tooltip:SetHeaderFont(hordeFont)
         else
@@ -487,7 +488,10 @@ function dataobj:OnEnter()
           end
         end
         tooltip:AddLine(" ")
-      end
+       end
+     end
+     -- Now Process the Active Party
+
     end
 
 
