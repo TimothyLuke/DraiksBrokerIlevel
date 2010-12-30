@@ -97,7 +97,7 @@ function DraiksBrokerDB:OnInitialize()
 				['*'] = {
 					-- Name
 					['*'] = {
-						class                      = "",   -- English class name
+						class                      = "",   -- Non Localised class name
 						level                      = 0,
 						ilvl                       = 0,
 						last_update                = 0,
@@ -105,8 +105,20 @@ function DraiksBrokerDB:OnInitialize()
 				}
 			}
 		},
+		data = {
+			-- Name
+			['*'] = {
+				-- DateTime
+				['*'] = {
+					class                      = "",   -- English class name
+					level                      = 0,
+					ilvl                       = 0,
+					GUID		 	   = 0
+				}
+			}
+		},
                 settings = {
-                        addonVersion = 1
+                        addonVersion = 1.5
                 },
 	},
 	profile = {
@@ -444,14 +456,12 @@ function dataobj:OnEnter()
         else
             tooltip:SetHeaderFont(allianceFont)
         end
-        factionline = tooltip:AddHeader(faction)   
-        factionentries = nil
+        tooltip:AddHeader(faction)   
         for realm, realm_table in pairs (faction_table) do
           if DraiksBrokerDB:GetOption('all_realms') or realm == DraiksBrokerDB.realm then
             tooltip:SetHeaderFont(green12Font)
-            realmline = tooltip:AddHeader(realm)
-	    realmentries = nil
-            DraiksBrokerDB:FetchOrderedNames(names, realm_table)
+            tooltip:AddHeader(realm)
+	    DraiksBrokerDB:FetchOrderedNames(names, realm_table)
 	    for _,name in ipairs (names) do
 
 		if not DraiksBrokerDB:GetOption('is_ignored', realm, name) then
@@ -472,20 +482,11 @@ function dataobj:OnEnter()
                         end 
 
                     end
-		    realmentries = true
-		    factionentries = true
                 end
-            end
-            if not realmentries then
-		tooltip.RemoveLine(realmline)
             end
           end
         end
-        if not factionentries then
-  		tooltip.RemoveLine(factionline)
-        else
-	        tooltip:AddLine(" ")
-	end
+        tooltip:AddLine(" ")
       end
     end
 
