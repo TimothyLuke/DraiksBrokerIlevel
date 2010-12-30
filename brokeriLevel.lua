@@ -53,7 +53,7 @@ druidFont:SetFont(GameTooltipText:GetFont(), 10)
 druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].b)
 
 -- deathknight
-deathknightFont = CreateFont("warlockFont")
+deathknightFont = CreateFont("deathknightFont")
 deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
 deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].b)
 
@@ -63,7 +63,7 @@ rogueFont:SetFont(GameTooltipText:GetFont(), 10)
 rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].b)
 
 -- Warrior
-warriorFont = CreateFont("warlockFont")
+warriorFont = CreateFont("warriorFont")
 warriorFont:SetFont(GameTooltipText:GetFont(), 10)
 warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].b)
 
