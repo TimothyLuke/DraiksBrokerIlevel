@@ -680,11 +680,11 @@ end
 
 
 function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
-    Scan_Party("party", ...)
+    --Scan_Party("party", ...)
 end
 
 function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
-    Scan_Party("raid", ...)
+    --Scan_Party("raid", ...)
 end
 
 function Scan_Party(type, ...)
