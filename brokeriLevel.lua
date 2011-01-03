@@ -105,14 +105,14 @@ function DraiksBrokerDB:OnInitialize()
 				}
 			},
 			partyData = {
-				-- Name
+				-- GUID
 				['*'] = {
 					-- DateTime
 					['*'] = {
 						class                      = "",   -- English class name
 						level                      = 0,
 						ilvl                       = 0,
-						GUID		 	   = 0
+						name		 	   = 0
 					}
 				}
 			},
@@ -147,10 +147,16 @@ function DraiksBrokerDB:OnInitialize()
 			ldbicon = {
 			  hide = nil,
 			},
+			group = {
+				formedDate = nil,
+				active = false,
+				type = nil
+			},
 		},
 	},
    }
 
+   
 
    self.db = LibStub("AceDB-3.0"):New("ilvlDB", default_options, true)
    self.faction = UnitFactionGroup("player")
@@ -490,12 +496,40 @@ function dataobj:OnEnter()
         tooltip:AddLine(" ")
        end
      end
-     -- Now Process the Active Party
-
+     
+     
     end
 
 
+   -- Party Ilevel
+   if DraiksBrokerDB:GetOption('show_party') and DraiksBrokerDB.db.profile.options.group.active then
+	tooltip:AddSeparator()
+            tooltip:SetHeaderFont(green12Font)
+            tooltip:AddHeader("Current Group")
+	    for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
+           
+		--if not DraiksBrokerDB:GetOption('is_ignored', realm, name) then
+                    local line, column = tooltip:AddLine()
+                    if DraiksBrokerDB.db.profile.options.display_bars  then 
+                        color = RAID_CLASS_COLORS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class]
+			tooltip:SetCell(line, 1, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, white10Font)
+                        tooltip:SetCell(line, 3, string.format("%.1f", DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), white10font)
+                        tooltip:SetLineColor(line, color.r, color.g, color.b)
+		        if DraiksBrokerDB.db.profile.options.show_level then
+                    	    tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, white10Font)
+                        end 
+                    else
+                        tooltip:SetCell(line, 1, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                        tooltip:SetCell(line, 3, string.format("%.1f",DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+		        if DraiksBrokerDB.db.profile.options.show_level then
+                    	    tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                        end 
 
+                    end
+                --end
+           -- end
+          end
+   end
 
 
 
@@ -503,11 +537,12 @@ function dataobj:OnEnter()
    -- Use smart anchoring code to anchor the tooltip to our frame
    tooltip:SmartAnchorTo(self)
    
+   
+
    -- Show it, et voilà !
    tooltip:Show()
 
-
-
+   
 end
 
 
@@ -665,7 +700,7 @@ function CalculateUnitItemLevel(unit)
 					local iname,_,_,l=GetItemInfo(k) 
 					t=t+l 
 					c=c+1
-                                        print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
+                                        --print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
 				end 
 			end 
 		end 
@@ -680,7 +715,22 @@ end
 
 
 function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
-    --Scan_Party("party", ...)
+
+   if GetNumPartyMembers() > 0 or GetNumRaidMembers() > 0 then
+     if not self.db.profile.options.group.active then
+	self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
+        self.db.profile.options.group.type = "group"
+        self.db.profile.options.group.active = true
+        print("Group party formed :" .. self.db.profile.options.group.formedDate)
+     else
+	print("Already in party formed :" .. self.db.profile.options.group.formedDate)
+     end
+   else
+	self.db.profile.options.active = false
+        print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded") 
+   end   
+
+   Scan_Party("party", ...)
 end
 
 function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
@@ -688,18 +738,20 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
 end
 
 function Scan_Party(type, ...)
-    print("Event Captured of type: ", type)
-    if not DraiksBrokerDB.groupformed then
-        DraiksBrokerDB.groupformeddate = date("%m/%d/%y %H:%M:%S")
-        DraiksBrokerDB.groupformed = true
-        print("Setting time to ", DraiksBrokerDB.groupformeddate)
-    end
-    print("Raid Members: ",  GetNumRaidMembers())
-    print("Party Members: ", GetNumPartyMembers())
-    print("Real Party Members: ", GetRealNumPartyMembers())
+    --print("Event Captured of type: ", type)
+    --print("Raid Members: ",  GetNumRaidMembers())
+    --print("Party Members: ", GetNumPartyMembers())
+    --print("Real Party Members: ", GetRealNumPartyMembers())
     for i=1, GetNumPartyMembers() do
-        print (GetUnitName("party"..i))
-	print(CalculateUnitItemLevel("party"..i))
-       i = i +1
+     if UnitInRange("party"..i) then   
+		local class_loc,class = UnitClass("party"..i)
+		print("Found " .. GetUnitName("party"..i)  .." with average ilevel of ")
+                print( CalculateUnitItemLevel("party"..i))
+   		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  CalculateUnitItemLevel("party"..i)
+		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].name =  GetUnitName("party"..i)
+		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].level =  UnitLevel("party"..i)
+	  end 
+     i = i +1
     end
 end
