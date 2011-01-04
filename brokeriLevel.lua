@@ -112,7 +112,7 @@ function DraiksBrokerDB:OnInitialize()
 						class                      = "",   -- English class name
 						level                      = 0,
 						ilvl                       = 0,
-						name		 	   = 0
+					    name                       = 0,
 					}
 				}
 			},
@@ -375,7 +375,14 @@ function DraiksBrokerDB:OnInitialize()
 	
    LibStub("AceConfig-3.0"):RegisterOptionsTable(L["Draiks Broker ILevel"], options)
    DraiksBrokerDB.options_frame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(L["Draiks Broker ILevel"])
-
+   
+   -- Check if already in party
+   if GetNumPartyMembers() = 0 and GetNumRaidMembers() = 0 then
+     if self.db.profile.options.group.active then
+        self.db.profile.options.group.active = false
+        --print("Group party formed :" .. self.db.profile.options.group.formedDate)
+     end
+   end
 end
 
 f:SetScript("OnUpdate", function(self, elap)
@@ -700,13 +707,13 @@ function CalculateUnitItemLevel(unit)
 					local iname,_,_,l=GetItemInfo(k) 
 					t=t+l 
 					c=c+1
-                                        --print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
+                    --print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
 				end 
 			end 
 		end 
 		if c>0 then 
 			--print(t/c)
-                        return(t/c)
+            return(t/c)
 		end
 	end
 end
@@ -730,27 +737,46 @@ function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
         print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded") 
    end   
 
-   Scan_Party("party", ...)
+   Scan_Party("party", GetNumPartyMembers(), ...)
 end
 
 function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
-    --Scan_Party("raid", ...)
+   if GetNumRaidMembers() > 0 then
+     if not self.db.profile.options.group.active then
+	self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
+        self.db.profile.options.group.type = "raid"
+        self.db.profile.options.group.active = true
+        print("Raid party formed :" .. self.db.profile.options.group.formedDate)
+     else
+	print("Already in party formed :" .. self.db.profile.options.group.formedDate)
+     end
+   else
+	self.db.profile.options.active = false
+        print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded") 
+   end   
+
+   Scan_Party("raid", GetNumRaidMembers() ...)
 end
 
-function Scan_Party(type, ...)
+function Scan_Party(type, numMembers, ...)
     --print("Event Captured of type: ", type)
     --print("Raid Members: ",  GetNumRaidMembers())
     --print("Party Members: ", GetNumPartyMembers())
     --print("Real Party Members: ", GetRealNumPartyMembers())
-    for i=1, GetNumPartyMembers() do
-     if UnitInRange("party"..i) then   
-		local class_loc,class = UnitClass("party"..i)
-		print("Found " .. GetUnitName("party"..i)  .." with average ilevel of ")
-                print( CalculateUnitItemLevel("party"..i))
-   		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  CalculateUnitItemLevel("party"..i)
-		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
-		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].name =  GetUnitName("party"..i)
-		DraiksBrokerDB.db.global.data.partyData[UnitGUID("party"..i)][DraiksBrokerDB.db.profile.options.group.formedDate].level =  UnitLevel("party"..i)
+    for i=1, numMembers do
+     if (type..i) CanInspect(type..i) and CheckInteractDistance(type..i, 1) then   
+		local class_loc,class = UnitClass(type..i)
+		local theirName = GetUnitName(type..i)
+		local theiriLvl = CalculateUnitItemLevel(type..i)
+		local theirLevel = UnitLevel(type..i)
+		print("Found " .. theirName  .." with average ilevel of " .. theiriLvl)
+   		local theirGUID = UnitGUID(type..i)
+        DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+		if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
+		    DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
+		end
+        DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
+		DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
 	  end 
      i = i +1
     end
