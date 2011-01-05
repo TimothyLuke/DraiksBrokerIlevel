@@ -706,22 +706,23 @@ function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
     self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "group"
         self.db.profile.options.group.active = true
-        print("Group party formed :" .. self.db.profile.options.group.formedDate)
+        --print("Group party formed :" .. self.db.profile.options.group.formedDate)
      else
-    print("Already in party formed :" .. self.db.profile.options.group.formedDate)
+    --print("Already in party formed :" .. self.db.profile.options.group.formedDate)
      end
    else
-    self.db.profile.options.active = false
-        print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
+    self.db.profile.options.group.active = false
+        --print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
    end
-   if self.db.profile.options.group.type == "party" then
+   if self.db.profile.options.group.type == "group" then
       -- if we're in a raid the raid roster event will handle things
-      Scan_Party("party", GetNumPartyMembers(), ...)
+       --print ("Starting Scan")
+       Scan_Party("party", GetNumPartyMembers())
    end
 end
  
 function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
-   if  self.db.profile.options.group.type == "party" then
+   if  self.db.profile.options.group.type == "group" then
        -- we've been changed into a raid
        self.db.profile.options.group.type = "raid"
    end 
@@ -731,32 +732,32 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
         self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "raid"
         self.db.profile.options.group.active = true
-        print("Raid party formed :" .. self.db.profile.options.group.formedDate)
+        --print("Raid party formed :" .. self.db.profile.options.group.formedDate)
      else
-    print("Already in party formed :" .. self.db.profile.options.group.formedDate)
+    --print("Already in party formed :" .. self.db.profile.options.group.formedDate)
      end
    else
-    self.db.profile.options.active = false
-        print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
+    self.db.profile.options.group.active = false
+        --print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
    end  
  
-   Scan_Party("raid", GetNumRaidMembers(), ...) 
+   Scan_Party("raid", GetNumRaidMembers()) 
 end
  
-local function Scan_Party(type, numMembers, ...)
+function Scan_Party(type, numMembers)
     --print("Event Captured of type: ", type)
     --print("Raid Members: ",  GetNumRaidMembers())
     --print("Party Members: ", GetNumPartyMembers())
     --print("Real Party Members: ", GetRealNumPartyMembers())
     for i=1, numMembers do
      table.insert(DraiksBrokerDB.scanqueue, type..i)
- 
+     --print("adding " .. type..i .. "to queue")
      --ScanUnit(type..i)
      i = i +1
     end
 end
  
-local function Scan_Unit(unit)
+function Scan_Unit(unit)
      returnval = false
      if CanInspect(unit) and CheckInteractDistance(unit, 1) then
         local class_loc,class = UnitClass(unit)
@@ -765,7 +766,7 @@ local function Scan_Unit(unit)
         local theirLevel = UnitLevel(unit)
         --print("Found " .. theirName  .." with average ilevel of " .. theiriLvl)
         local theirGUID = UnitGUID(unit)
-       if UnitIsSameServer(unit) then   --Only save units from my server
+       if UnitIsSameServer(unit, "player") then   --Only save units from my server
  
         --if DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl = 0 then
                 DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
@@ -778,11 +779,11 @@ local function Scan_Unit(unit)
                 returnval = true
         --end
        else
-                self.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
-                self.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
-                self.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
-                if theiriLvl > self.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
-                    self.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
+                DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+                DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
+                DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
+                if theiriLvl > DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
+                    DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
                 end
                 -- I have them take them out of the queue
                 returnval = true
@@ -795,12 +796,13 @@ end
 function DraiksBrokerDB:TimerQueue()
  
     for i,v in ipairs(DraiksBrokerDB.scanqueue) do
-        if not UnitAffectingCombat("player") then
+       --print ("about to scan unit " .. v)
+       if not UnitAffectingCombat("player") then
           if Scan_Unit(v) then
                 table.remove(DraiksBrokerDB.scanqueue, i)
           end
         end
     end
-    print("Num Units in queue: ", # DraiksBrokerDB.scanqueue) 
+    --print("Num Units in queue: ", # DraiksBrokerDB.scanqueue) 
 end
  
