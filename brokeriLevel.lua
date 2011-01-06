@@ -51,7 +51,8 @@ druidFont:SetFont(GameTooltipText:GetFont(), 10)
 druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].b)
  
 -- deathknight
-deathknightFont = CreateFont("deathknightFont") deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
+deathknightFont = CreateFont("deathknightFont") 
+deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
 deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].b)
  
 -- Rogue
@@ -167,13 +168,10 @@ function DraiksBrokerDB:OnInitialize()
      self.sort_table = {}
      self.scanqueue = {}
      self.partyData = {
-          ['*']= {
-                ['*'] = {
-                    class = 0,
-                    ilvl = 0,
-                    name = 0,
-                    level = 0,
-                },
+          name = {
+                class = 0,
+                ilvl = 0,
+                level = 0,
           },
      }
  
@@ -299,7 +297,7 @@ function DraiksBrokerDB:OnInitialize()
      -- Ignore section
      local faction_order = 1
      for faction, faction_table in pairs(DraiksBrokerDB.db.global.data) do
-          
+ 
           local faction_id = "faction" .. faction_order
           options.args.ignore.args[faction_id] = {
                type    = 'group',
@@ -358,14 +356,14 @@ function DraiksBrokerDB:OnInitialize()
      self.queueTimer = self:ScheduleRepeatingTimer("TimerQueue", 10)
  
 end
-
+ 
 function formatFaction(faction)
     if faction == "partyData" then
         faction = "Other Player Characters"
     end
     return faction
 end
-
+ 
 function formatRealm(faction,realm)
     returnval = realm
     if faction == "partyData" then
@@ -488,51 +486,61 @@ function dataobj:OnEnter()
                end
           end
      end
- 
+     
+    if DraiksBrokerDB.locals == true then
      -- Party Ilevel
      if DraiksBrokerDB:GetOption('show_party') and DraiksBrokerDB.db.profile.options.group.active then
           tooltip:AddSeparator()
           tooltip:SetHeaderFont(green12Font)
           tooltip:AddHeader("Current Group")
           for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
+             for formedDate, resttable in pairs(pc_table) do
+              if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
+               --print(formedDate)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
-                    color = RAID_CLASS_COLORS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class]
-                    tooltip:SetCell(line, 1, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, white10Font)
-                    tooltip:SetCell(line, 3, string.format("%.1f", DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), white10font)
+                    color = RAID_CLASS_COLORS[resttable.class]
+                    tooltip:SetCell(line, 1, resttable.name, white10Font)
+                    tooltip:SetCell(line, 3, string.format("%.1f", resttable.ilvl), white10font)
+                   -- print (GUID)
+                    --print (resttable.class)
                     tooltip:SetLineColor(line, color.r, color.g, color.b)
                     if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, white10Font)
+                         tooltip:SetCell(line, 2, resttable.level, white10Font)
+                    end
+                   else
+                    tooltip:SetCell(line, 1, resttable.name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                    tooltip:SetCell(line, 3, string.format("%.1f",resttable.ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                    if DraiksBrokerDB.db.profile.options.show_level then
+                         tooltip:SetCell(line, 2, resttable.level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                    end
+                  end
+               end
+             end 
+          end
+        end
+  
+        if DraiksBrokerDB.foreigners == true then
+          -- SHow foreigners from RAM but not saved
+          for theirName,pc_table in pairs(DraiksBrokerDB.partyData) do
+               local line, column = tooltip:AddLine()
+               if DraiksBrokerDB.db.profile.options.display_bars  then
+                    color = RAID_CLASS_COLORS[pc_table.class]
+                    tooltip:SetCell(line, 1, theirName, white10Font)
+                    tooltip:SetCell(line, 3, string.format("%.1f", pc_table.ilvl), white10font)
+                    tooltip:SetLineColor(line, color.r, color.g, color.b)
+                    if DraiksBrokerDB.db.profile.options.show_level then
+                         tooltip:SetCell(line, 2, pc_table.level, white10Font)
                     end
                else
-                    tooltip:SetCell(line, 1, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-                    tooltip:SetCell(line, 3, string.format("%.1f",DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                    tooltip:SetCell(line, 1, theirName, CLASS_FONTS[pc_table.class])
+                    tooltip:SetCell(line, 3, string.format("%.1f",pc_table.ilvl), CLASS_FONTS[pc_table.class])
                     if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                         tooltip:SetCell(line, 2, pc_table.level, CLASS_FONTS[pc_table.class])
                     end
                end
           end
- 
-          -- SHow foreigners from RAM but not saved
-          --for GUID,pc_table in pairs (DraiksBrokerDB.partyData) do
-          --     local line, column = tooltip:AddLine()
-          --     if DraiksBrokerDB.db.profile.options.display_bars  then
-          --          color = RAID_CLASS_COLORS[DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class]
-          --          tooltip:SetCell(line, 1, DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, white10Font)
-          --          tooltip:SetCell(line, 3, string.format("%.1f", DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), white10font)
-          --          tooltip:SetLineColor(line, color.r, color.g, color.b)
-          --          if DraiksBrokerDB.db.profile.options.show_level then
-          --               tooltip:SetCell(line, 2, DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, white10Font)
-          --          end
-          --     else
-          --          tooltip:SetCell(line, 1, DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-          --          tooltip:SetCell(line, 3, string.format("%.1f",DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-          --          if DraiksBrokerDB.db.profile.options.show_level then
-          --               tooltip:SetCell(line, 2, DraiksBrokerDB.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-          --          end
-          --     end
-          --end
- 
+        end
      end
  
      -- Use smart anchoring code to anchor the tooltip to our frame
@@ -721,6 +729,9 @@ function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
      end
    else
     self.db.profile.options.group.active = false
+                    DraiksBrokerDB.locals = false
+                DraiksBrokerDB.foreigners = false
+
         --print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
    end
    if self.db.profile.options.group.type == "group" then
@@ -734,7 +745,7 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
    if  self.db.profile.options.group.type == "group" then
        -- we've been changed into a raid
        self.db.profile.options.group.type = "raid"
-   end 
+   end
  
    if GetNumRaidMembers() > 0 then
      if not self.db.profile.options.group.active then
@@ -747,10 +758,13 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
      end
    else
     self.db.profile.options.group.active = false
+                    DraiksBrokerDB.locals = false
+                DraiksBrokerDB.foreigners = false
+
         --print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
-   end  
+   end 
  
-   Scan_Party("raid", GetNumRaidMembers()) 
+   Scan_Party("raid", GetNumRaidMembers())
 end
  
 function Scan_Party(type, numMembers)
@@ -786,17 +800,17 @@ function Scan_Unit(unit)
                 end
                 -- I have them take them out of the queue
                 returnval = true
+                DraiksBrokerDB.locals = true
         --end
        else
-                --DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
-                --DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
-               -- DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
-               -- if theiriLvl > DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
-               --     DraiksBrokerDB.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
-              --  end
+               DraiksBrokerDB.partyData[theirName].class =  class
+               DraiksBrokerDB.partyData[theirName].level =  theirLevel
+               if theiriLvl > DraiksBrokerDB.partyData[theirName].ilvl then
+                    DraiksBrokerDB.partyData[theirName].ilvl =  theiriLvl
+               end
                 -- I have them take them out of the queue
-                returnval = true
- 
+               returnval = true
+               DraiksBrokerDB.foreigners = true
        end
       end
      return returnval
@@ -812,6 +826,5 @@ function DraiksBrokerDB:TimerQueue()
           end
         end
     end
-    --print("Num Units in queue: ", # DraiksBrokerDB.scanqueue) 
+    --print("Num Units in queue: ", # DraiksBrokerDB.scanqueue)
 end
- 
