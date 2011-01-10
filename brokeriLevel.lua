@@ -534,7 +534,7 @@ function dataobj:OnEnter()
         if DraiksBrokerDB.foreigners == true then
           -- SHow foreigners from RAM but not saved
           for theirName,_ in pairs(DraiksBrokerDB.partyName) do
-               print ("Found :" .. theirName)
+               --print ("Found :" .. theirName)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
                     color = RAID_CLASS_COLORS[DraiksBrokerDB.partyClass[theirName]]
