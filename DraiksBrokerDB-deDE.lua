@@ -42,3 +42,7 @@ L["Calculate Own Average iLevel"] = "Berechnen Sie, durchschnittliches iLevel zu
 L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"] = "Berechnen Sie Ihr eigenes durchschnittliches iLevel, das basiert auf, was Sie ausgerüstet haben, anstatt, den Blizzard zu benutzen, der durchschnittliches iLevel berichtet wird"
 L["Show Party"] = "Zeigen Sie Partei"
 L["Show the ilvl of party and raid members from your server."] = "Zeigen Sie das ilvl der Partei- und Überfallmitglieder von Ihrem Bediener"
+L["Save Party"] = true
+L["Save the ilvl of party and raid members from your server."] = true
+L["Current Group"] = true
+L["Group and Raid Options"] = true

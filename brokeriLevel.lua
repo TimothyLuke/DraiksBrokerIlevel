@@ -133,6 +133,7 @@ function DraiksBrokerDB:OnInitialize()
                     show_level = false,
                     calculate_own_ilvl = false,
                     show_party = true,
+                    save_externals = true,
                     is_ignored = {
                          -- Realm
                          ['*'] = {
@@ -167,14 +168,11 @@ function DraiksBrokerDB:OnInitialize()
  
      self.sort_table = {}
      self.scanqueue = {}
-     self.partyData = {
-          name = {
-                class = 0,
-                ilvl = 0,
-                level = 0,
-          },
-     }
- 
+     self.partyName = {}
+     self.partyClass = {}
+     self.partyLevel = {}
+     self.partyiLvl = {}
+
      local options = {
           name = L["Draiks Broker ILevel"],
           childGroups = 'tab',
@@ -199,21 +197,13 @@ function DraiksBrokerDB:OnInitialize()
                               set = function(info, v) DraiksBrokerDB:SetOption('show_level',v) end,
                               order = 1.1,
                          },
-                         show_party = {
-                              name = L["Show Party"],
-                              desc = L["Show the ilvl of party and raid members from your server."],
-                              type = 'toggle',
-                              get = function() return DraiksBrokerDB:GetOption('show_party') end,
-                              set = function(info, v) DraiksBrokerDB:SetOption('show_party',v) end,
-                              order = 1.2,
-                         },
                          calculate_own_ilvl = {
                               name = L["Calculate Own Average iLevel"],
                               desc = L["Calculate your own average iLevel based on what you have equiped instead of using the Blizzard Reported Average iLevel"],
                               type = 'toggle',
                               get = function() return DraiksBrokerDB:GetOption('calculate_own_ilvl') end,
                               set = function(info, v) DraiksBrokerDB:SetOption('calculate_own_ilvl',v) end,
-                              order = 1.3,
+                              order = 1.2,
                          },
                          display_bars = {
                               name = L["Show Bars"],
@@ -221,7 +211,7 @@ function DraiksBrokerDB:OnInitialize()
                               type = 'toggle',
                               get = function() return DraiksBrokerDB:GetOption('display_bars') end,
                               set = function(info, v) DraiksBrokerDB:SetOption('display_bars',v) end,
-                              order = 1.4,
+                              order = 1.3,
                          },
                          faction_and_realms = {
                               type = 'header',
@@ -243,6 +233,27 @@ function DraiksBrokerDB:OnInitialize()
                               get = function() return DraiksBrokerDB:GetOption('all_realms') end,
                               set = function(info, v) DraiksBrokerDB:SetOption('all_realms',v) end,
                               order = 2.2,
+                         },
+                         group_raid = {
+                              type = 'header',
+                              name = L["Group and Raid Options"],
+                              order = 3,
+                         },
+                         show_party = {
+                              name = L["Show Party"],
+                              desc = L["Show the ilvl of party and raid members from your server."],
+                              type = 'toggle',
+                              get = function() return DraiksBrokerDB:GetOption('show_party') end,
+                              set = function(info, v) DraiksBrokerDB:SetOption('show_party',v) end,
+                              order = 3.1,
+                         },
+                         save_party = {
+                              name = L["Save Party"],
+                              desc = L["Save the ilvl of party and raid members from your server."],
+                              type = 'toggle',
+                              get = function() return DraiksBrokerDB:GetOption('save_externals') end,
+                              set = function(info, v) DraiksBrokerDB:SetOption('save_externals',v) end,
+                              order = 3.2,
                          },
                          sort = {
                               type = 'header',
@@ -492,7 +503,7 @@ function dataobj:OnEnter()
      if DraiksBrokerDB:GetOption('show_party') and DraiksBrokerDB.db.profile.options.group.active then
           tooltip:AddSeparator()
           tooltip:SetHeaderFont(green12Font)
-          tooltip:AddHeader("Current Group")
+          tooltip:AddHeader(L["Current Group"])
           for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
              for formedDate, resttable in pairs(pc_table) do
               if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
@@ -522,21 +533,22 @@ function dataobj:OnEnter()
   
         if DraiksBrokerDB.foreigners == true then
           -- SHow foreigners from RAM but not saved
-          for theirName,pc_table in pairs(DraiksBrokerDB.partyData) do
+          for theirName,_ in pairs(DraiksBrokerDB.partyName) do
+               print ("Found :" .. theirName)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
-                    color = RAID_CLASS_COLORS[pc_table.class]
+                    color = RAID_CLASS_COLORS[DraiksBrokerDB.partyClass[theirName]]
                     tooltip:SetCell(line, 1, theirName, white10Font)
-                    tooltip:SetCell(line, 3, string.format("%.1f", pc_table.ilvl), white10font)
+                    tooltip:SetCell(line, 3, string.format("%.1f", DraiksBrokerDB.partyiLvl[theirName]), white10font)
                     tooltip:SetLineColor(line, color.r, color.g, color.b)
                     if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, pc_table.level, white10Font)
+                         tooltip:SetCell(line, 2, DraiksBrokerDB.partyLevel[theirName], white10Font)
                     end
                else
-                    tooltip:SetCell(line, 1, theirName, CLASS_FONTS[pc_table.class])
-                    tooltip:SetCell(line, 3, string.format("%.1f",pc_table.ilvl), CLASS_FONTS[pc_table.class])
+                    tooltip:SetCell(line, 1, theirName, CLASS_FONTS[DraiksBrokerDB.partyClass[theirName]])
+                    tooltip:SetCell(line, 3, string.format("%.1f",DraiksBrokerDB.partyiLvl[theirName]), CLASS_FONTS[DraiksBrokerDB.partyClass[theirName]])
                     if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, pc_table.level, CLASS_FONTS[pc_table.class])
+                         tooltip:SetCell(line, 2, DraiksBrokerDB.partyLevel[theirName], CLASS_FONTS[DraiksBrokerDB.partyClass[theirName]])
                     end
                end
           end
@@ -717,10 +729,10 @@ end
  
  
 function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
- 
+  
    if GetNumPartyMembers() > 0 or GetNumRaidMembers() > 0 then
      if not self.db.profile.options.group.active then
-    self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
+        self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "group"
         self.db.profile.options.group.active = true
         --print("Group party formed :" .. self.db.profile.options.group.formedDate)
@@ -729,8 +741,12 @@ function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
      end
    else
     self.db.profile.options.group.active = false
-                    DraiksBrokerDB.locals = false
-                DraiksBrokerDB.foreigners = false
+    DraiksBrokerDB.locals = false
+    DraiksBrokerDB.foreigners = false
+    zap(DraiksBrokerDB.partyClass)
+    zap(DraiksBrokerDB.partyName)
+    zap(DraiksBrokerDB.partyLevel )
+    zap(DraiksBrokerDB.partyiLvl)
 
         --print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
    end
@@ -759,7 +775,11 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
    else
     self.db.profile.options.group.active = false
                     DraiksBrokerDB.locals = false
-                DraiksBrokerDB.foreigners = false
+     zap(DraiksBrokerDB.partyClass)
+    zap(DraiksBrokerDB.partyName)
+    zap(DraiksBrokerDB.partyLevel )
+    zap(DraiksBrokerDB.partyiLvl)
+               DraiksBrokerDB.foreigners = false
 
         --print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
    end 
@@ -783,13 +803,13 @@ end
 function Scan_Unit(unit)
      returnval = false
      if CanInspect(unit) and CheckInteractDistance(unit, 1) then
-        local class_loc,class = UnitClass(unit)
+        local class_loc, class = UnitClass(unit)
         local theirName = GetUnitName(unit)
         local theiriLvl = CalculateUnitItemLevel(unit)
         local theirLevel = UnitLevel(unit)
         --print("Found " .. theirName  .." with average ilevel of " .. theiriLvl)
         local theirGUID = UnitGUID(unit)
-       if UnitIsSameServer(unit, "player") then   --Only save units from my server
+       if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
  
         --if DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl = 0 then
                 DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
@@ -803,11 +823,11 @@ function Scan_Unit(unit)
                 DraiksBrokerDB.locals = true
         --end
        else
-               DraiksBrokerDB.partyData[theirName].class =  class
-               DraiksBrokerDB.partyData[theirName].level =  theirLevel
-               if theiriLvl > DraiksBrokerDB.partyData[theirName].ilvl then
-                    DraiksBrokerDB.partyData[theirName].ilvl =  theiriLvl
-               end
+               DraiksBrokerDB.partyClass[theirName] =  class
+               DraiksBrokerDB.partyLevel[theirName] =  theirLevel
+               DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
+               DraiksBrokerDB.partyName[theirName] =  theirName
+               
                 -- I have them take them out of the queue
                returnval = true
                DraiksBrokerDB.foreigners = true
@@ -827,4 +847,13 @@ function DraiksBrokerDB:TimerQueue()
         end
     end
     --print("Num Units in queue: ", # DraiksBrokerDB.scanqueue)
+end
+
+function zap(table)
+    local next = next
+    local k = next(table)
+    while k do
+        table[k] = nil
+        k = next(table)
+    end
 end
