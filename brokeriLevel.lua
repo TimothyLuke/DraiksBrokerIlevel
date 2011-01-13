@@ -401,13 +401,14 @@ f:SetScript("OnUpdate", function(self, elap)
           draiksAddonInitialised = true
      end
  
-     dataobj.text = string.format("ilvl: %.1f", DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl)
      if DraiksBrokerDB.db.profile.options.calculate_own_ilvl then
           DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)
      else
           DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()
      end
      DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")
+     dataobj.text = string.format("ilvl: %.1f", DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl)
+
      addonLoadedBool = true
  
  
