@@ -535,6 +535,7 @@ function dataobj:OnEnter()
         if DraiksBrokerDB.foreigners == true then
           -- SHow foreigners from RAM but not saved
           for theirName,_ in pairs(DraiksBrokerDB.partyName) do
+            if UnitInParty(theirName) or UnitInRaid(theirName) then
                --print ("Found :" .. theirName)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
@@ -552,6 +553,7 @@ function dataobj:OnEnter()
                          tooltip:SetCell(line, 2, DraiksBrokerDB.partyLevel[theirName], CLASS_FONTS[DraiksBrokerDB.partyClass[theirName]])
                     end
                end
+            end
           end
         end
      end
@@ -776,7 +778,7 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
    else
     self.db.profile.options.group.active = false
                     DraiksBrokerDB.locals = false
-     zap(DraiksBrokerDB.partyClass)
+    zap(DraiksBrokerDB.partyClass)
     zap(DraiksBrokerDB.partyName)
     zap(DraiksBrokerDB.partyLevel )
     zap(DraiksBrokerDB.partyiLvl)
@@ -824,6 +826,7 @@ function Scan_Unit(unit)
                 DraiksBrokerDB.locals = true
         --end
        else
+               --print("Added " .. theirName .. " to local table.")
                DraiksBrokerDB.partyClass[theirName] =  class
                DraiksBrokerDB.partyLevel[theirName] =  theirLevel
                DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
