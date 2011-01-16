@@ -508,8 +508,9 @@ function dataobj:OnEnter()
           for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
              for formedDate, resttable in pairs(pc_table) do
               if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
-               print(resttable.name)
-               if UnitInParty(resttable.name) or UnitInRaid(resttable.name) then
+               --print(resttable.name)
+               --This check is the right idea but need to find another way to implement it
+               --if UnitInParty(resttable.name) or UnitInRaid(resttable.name) then
                --print(formedDate)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
@@ -529,7 +530,7 @@ function dataobj:OnEnter()
                          tooltip:SetCell(line, 2, resttable.level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
                     end
                   end
-               end
+               --end
                end
              end 
           end
