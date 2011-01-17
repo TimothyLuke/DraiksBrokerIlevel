@@ -5,14 +5,14 @@ local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
 local iLevel = GetAverageItemLevel()
 local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
+local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
 -- Get a reference to the lib
 local LibQTip = LibStub('LibQTip-1.0')
-local dataobj = ldb:NewDataObject("iLevel", {type = "data source", text = "Current ilevel: 200"})
-local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
- 
+local dataobj = ldb:NewDataObject(L["Draiks Broker ILevel"], {type = "data source", text = "ilvl: 200"})
+
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
- 
+
  
 -- Setup Display Fonts
 -- Hunter
@@ -509,37 +509,36 @@ function dataobj:OnEnter()
              for formedDate, resttable in pairs(pc_table) do
               if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
                --print(resttable.name)
-               --This check is the right idea but need to find another way to implement it
-               --if UnitInParty(resttable.name) or UnitInRaid(resttable.name) then
-               --print(formedDate)
-               local line, column = tooltip:AddLine()
-               if DraiksBrokerDB.db.profile.options.display_bars  then
-                    color = RAID_CLASS_COLORS[resttable.class]
-                    tooltip:SetCell(line, 1, resttable.name, white10Font)
-                    tooltip:SetCell(line, 3, string.format("%.1f", resttable.ilvl), white10font)
-                   -- print (GUID)
-                    --print (resttable.class)
-                    tooltip:SetLineColor(line, color.r, color.g, color.b)
-                    if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, resttable.level, white10Font)
+
+               if check_player_in_group(resttable.name) then
+                 local line, column = tooltip:AddLine()
+                 if DraiksBrokerDB.db.profile.options.display_bars  then
+                      color = RAID_CLASS_COLORS[resttable.class]
+                      tooltip:SetCell(line, 1, resttable.name, white10Font)
+                      tooltip:SetCell(line, 3, string.format("%.1f", resttable.ilvl), white10font)
+                     -- print (GUID)
+                      --print (resttable.class)
+                      tooltip:SetLineColor(line, color.r, color.g, color.b)
+                      if DraiksBrokerDB.db.profile.options.show_level then
+                           tooltip:SetCell(line, 2, resttable.level, white10Font)
+                      end
+                     else
+                      tooltip:SetCell(line, 1, resttable.name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                      tooltip:SetCell(line, 3, string.format("%.1f",resttable.ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                      if DraiksBrokerDB.db.profile.options.show_level then
+                           tooltip:SetCell(line, 2, resttable.level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
+                      end
                     end
-                   else
-                    tooltip:SetCell(line, 1, resttable.name, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-                    tooltip:SetCell(line, 3, string.format("%.1f",resttable.ilvl), CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-                    if DraiksBrokerDB.db.profile.options.show_level then
-                         tooltip:SetCell(line, 2, resttable.level, CLASS_FONTS[DraiksBrokerDB.db.global.data.partyData[GUID][DraiksBrokerDB.db.profile.options.group.formedDate].class])
-                    end
-                  end
-               --end
+                 end
                end
-             end 
+             end
           end
         end
   
         if DraiksBrokerDB.foreigners == true then
           -- SHow foreigners from RAM but not saved
           for theirName,_ in pairs(DraiksBrokerDB.partyName) do
-            if UnitInParty(theirName) or UnitInRaid(theirName) then
+            if check_player_in_group(theirName) then
                --print ("Found :" .. theirName)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
@@ -864,4 +863,27 @@ function zap(table)
         table[k] = nil
         k = next(table)
     end
+end
+
+function check_player_in_group(name)
+    local found = false
+    -- if its you skip it
+    if name ~= DraiksBrokerDB.pc then
+       -- loop party members
+       for i=1, GetNumPartyMembers() do
+           if UnitName("party" .. i) == name then
+              found = true
+           end
+       end
+
+
+
+       -- loop raid members
+       for i=1, GetNumRaidMembers() do
+           if UnitName("raid" .. i) == name then
+              found = true
+           end
+       end
+    end
+    return found
 end
