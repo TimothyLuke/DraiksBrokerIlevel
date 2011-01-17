@@ -1,7 +1,7 @@
 ﻿## Interface: 40000
 ## Title: DraiksBrokeriLevel
 ## Notes: Shows current iLevel
-## Author: Draik
+## Author: Draik@Silvermoon@US
 ## X-eMail: timothy@minahan.net
 ## X-Category: Miscellaneous
 ## LoadManagers: AddonLoader
