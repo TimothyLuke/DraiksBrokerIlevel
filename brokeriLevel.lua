@@ -499,12 +499,12 @@ function dataobj:OnEnter()
           end
      end
      
-    if DraiksBrokerDB.locals == true then
      -- Party Ilevel
-     if DraiksBrokerDB:GetOption('show_party') and DraiksBrokerDB.db.profile.options.group.active then
+      if DraiksBrokerDB:GetOption('show_party') and DraiksBrokerDB.db.profile.options.group.active then
           tooltip:AddSeparator()
           tooltip:SetHeaderFont(green12Font)
           tooltip:AddHeader(L["Current Group"])
+         if DraiksBrokerDB.locals == true then
           for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
              for formedDate, resttable in pairs(pc_table) do
               if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
