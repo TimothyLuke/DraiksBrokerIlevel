@@ -871,7 +871,7 @@ function check_player_in_group(name)
     if name ~= DraiksBrokerDB.pc then
        -- loop party members
        for i=1, GetNumPartyMembers() do
-           if UnitName("party" .. i) == name then
+            if GetUnitName("party" .. i) == name then
               found = true
            end
        end
@@ -880,7 +880,7 @@ function check_player_in_group(name)
 
        -- loop raid members
        for i=1, GetNumRaidMembers() do
-           if UnitName("raid" .. i) == name then
+           if GetUnitName("raid" .. i) == name then
               found = true
            end
        end
