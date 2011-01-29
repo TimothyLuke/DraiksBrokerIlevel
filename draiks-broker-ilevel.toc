@@ -21,5 +21,8 @@ embeds.xml
 DraiksBrokerDB-enUS.lua
 DraiksBrokerDB-deDE.lua
 DraiksBrokerDB-frFR.lua
+DraiksBrokerDB-ruRU.lua
+DraiksBrokerDB-zhCN.lua
+DraiksBrokerDB-zhTW.lua
 
 brokeriLevel.lua
