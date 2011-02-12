@@ -724,7 +724,7 @@ function CalculateUnitItemLevel(unit)
                 end
             end
         end
-        ClearInspect(unit)
+        ClearInspectPlayer(unit)
         if c>0 then
             --print(t/c)
             return(t/c)
