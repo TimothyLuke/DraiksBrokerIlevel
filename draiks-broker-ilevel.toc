@@ -10,10 +10,10 @@
 
 
 
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-Libs\LibDataBroker-1.1\libDataBroker-1.1.lua
-libs\LibQTip-1.0\LibQTip-1.0.lua
+Lib\LibStub\LibStub.lua
+Lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Lib\LibDataBroker-1.1\libDataBroker-1.1.lua
+Lib\LibQTip-1.0\LibQTip-1.0.lua
 
 
 embeds.xml

@@ -713,7 +713,7 @@ function CalculateUnitItemLevel(unit)
         NotifyInspect(unit)
  
         local t,c=0,0
-            for i =1,18 do
+        for i =1,18 do
             if i~=4 then
                 local k=GetInventoryItemLink(unit,i)
                 if k then
@@ -724,6 +724,7 @@ function CalculateUnitItemLevel(unit)
                 end
             end
         end
+        ClearInspect(unit)
         if c>0 then
             --print(t/c)
             return(t/c)
