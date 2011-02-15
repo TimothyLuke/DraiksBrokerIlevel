@@ -395,16 +395,14 @@ f:SetScript("OnUpdate", function(self, elap)
      self.faction = UnitFactionGroup("player")
      self.realm = GetRealmName()
      self.pc = UnitName("player")
- 
+     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl
      if not draiksAddonInitialised then
           ilevelDB = {}
           draiksAddonInitialised = true
      end
- 
+     
      if DraiksBrokerDB.db.profile.options.calculate_own_ilvl then
           DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)
-     else
-          DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()
      end
      DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")
      dataobj.text = string.format("ilvl: %.1f", DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl)
@@ -724,7 +722,7 @@ function CalculateUnitItemLevel(unit)
                 end
             end
         end
-        ClearInspectPlayer(unit)
+        ClearInspectPlayer()
         if c>0 then
             --print(t/c)
             return(t/c)
