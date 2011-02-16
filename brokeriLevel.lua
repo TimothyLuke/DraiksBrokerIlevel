@@ -395,7 +395,7 @@ f:SetScript("OnUpdate", function(self, elap)
      self.faction = UnitFactionGroup("player")
      self.realm = GetRealmName()
      self.pc = UnitName("player")
-     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl
+     DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = iLevel
      if not draiksAddonInitialised then
           ilevelDB = {}
           draiksAddonInitialised = true
