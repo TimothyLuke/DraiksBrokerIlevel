@@ -1,4 +1,4 @@
-﻿## Interface: 40000
+﻿## Interface: 50400
 ## Title: DraiksBrokeriLevel
 ## Notes: Shows current iLevel
 ## Author: Draik@Silvermoon@US

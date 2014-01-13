@@ -356,7 +356,7 @@ function DraiksBrokerDB:OnInitialize()
      DraiksBrokerDB.options_frame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(L["Draiks Broker ILevel"])
  
      -- Check if already in party
-     if GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0 then
+     if GetNumGroupMembers() == 0 then
           if self.db.profile.options.group.active then
                self.db.profile.options.group.active = false
                --print("Group party formed :" .. self.db.profile.options.group.formedDate)
