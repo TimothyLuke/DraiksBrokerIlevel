@@ -2,6 +2,9 @@ local L = LibStub("AceLocale-3.0"):NewLocale("DraiksBrokerDB", "enUS", true)
 
 L["Draiks Broker ILevel"] = true
 L["Display"] = true
+L["Debug"] = true
+L["Debug Mode"] = true
+L["Enable Debugging"] = true
 L["Specify what to display"] = true
 L["Main Settings"] = true
 L["Show Level"] = true

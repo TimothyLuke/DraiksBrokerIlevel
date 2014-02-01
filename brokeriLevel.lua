@@ -64,6 +64,11 @@ rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g
 warriorFont = CreateFont("warriorFont")
 warriorFont:SetFont(GameTooltipText:GetFont(), 10)
 warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].b)
+
+-- Monk
+monkFont = CreateFont("monkFont")
+monkFont:SetFont(GameTooltipText:GetFont(), 10)
+monkFont:SetTextColor(RAID_CLASS_COLORS["MONK"].r,RAID_CLASS_COLORS["MONK"].g,RAID_CLASS_COLORS["MONK"].b)
  
 CLASS_FONTS = {
     ["HUNTER"] = hunterFont,
@@ -76,13 +81,13 @@ CLASS_FONTS = {
     ["SHAMAN"] = shamanFont,
     ["WARRIOR"] = warriorFont,
     ["DEATHKNIGHT"] = deathknightFont,
+    ["MONK"] = monkFont,
 };
  
 function DraiksBrokerDB:OnInitialize()
  
-     self:RegisterEvent("PARTY_MEMBERS_CHANGED")
-     self:RegisterEvent("RAID_ROSTER_UPDATE")
- 
+     self:RegisterEvent("GROUP_ROSTER_UPDATE")
+     
      -- Default values for the save variables
      default_options = {
           global = {
@@ -114,14 +119,14 @@ function DraiksBrokerDB:OnInitialize()
                     },
                },
                settings = {
-                    addonVersion = 1.5
+                    addonVersion = 1.6
                },
           },
           profile = {
                options = {
                     all_factions = true,
                     all_realms = true,
-                    show_coins = true,
+                    debug_mode = false,
                     refresh_rate = 20,
                     show_class_name = true,
                     colorize_class = true,
@@ -129,7 +134,7 @@ function DraiksBrokerDB:OnInitialize()
                     opacity = .9,
                     sort_type = "alpha",
                     use_icons = false,
-                    display_bars = false,
+                    display_bars = true,
                     show_level = false,
                     calculate_own_ilvl = false,
                     show_party = true,
@@ -258,7 +263,7 @@ function DraiksBrokerDB:OnInitialize()
                          sort = {
                               type = 'header',
                               name = L["Sort Order"],
-                              order = 9,
+                              order = 8,
                          },
                          sort_type = {
                               name = L["Sort Type"],
@@ -271,7 +276,7 @@ function DraiksBrokerDB:OnInitialize()
                                    ["level"]   = L["By Level"],
                                    ["ilvl"]    = L["By Item Level"],
                               },
-                              order     = 9.1,
+                              order     = 8.1,
                          },
                          reverse_sort = {
                               name = L["Sort in reverse order"],
@@ -279,8 +284,21 @@ function DraiksBrokerDB:OnInitialize()
                               type = 'toggle',
                               get = function() return DraiksBrokerDB:GetOption('reverse_sort') end,
                               set = function(info, v) DraiksBrokerDB:SetOption('reverse_sort',v) end,
-                              order = 9.2,
-                         }
+                              order = 8.2,
+                         },
+                         debug_header = {
+                              type = 'header',
+                              name = L["Debug Mode"],
+                              order = 9,
+                         },
+                         debug_mode = {
+                              name = L["Debug"],
+                              desc = L["Enable Debugging"],
+                              type = 'toggle',
+                              get = function() return DraiksBrokerDB:GetOption('debug_mode') end,
+                              set = function(info, v) DraiksBrokerDB:SetOption('debug_mode',v) end,
+                              order = 9.1,
+                         },
                     }
                },
                ignore = {
@@ -359,7 +377,7 @@ function DraiksBrokerDB:OnInitialize()
      if GetNumGroupMembers() == 0 then
           if self.db.profile.options.group.active then
                self.db.profile.options.group.active = false
-               --print("Group party formed :" .. self.db.profile.options.group.formedDate)
+               debug_message("Group party formed :" .. self.db.profile.options.group.formedDate)
           end
      end
  
@@ -506,7 +524,7 @@ function dataobj:OnEnter()
           for GUID,pc_table in pairs (DraiksBrokerDB.db.global.data.partyData) do
              for formedDate, resttable in pairs(pc_table) do
               if formedDate == DraiksBrokerDB.db.profile.options.group.formedDate then
-               --print(resttable.name)
+               debug_message(resttable.name)
 
                if check_player_in_group(resttable.name) then
                  local line, column = tooltip:AddLine()
@@ -514,8 +532,8 @@ function dataobj:OnEnter()
                       color = RAID_CLASS_COLORS[resttable.class]
                       tooltip:SetCell(line, 1, resttable.name, white10Font)
                       tooltip:SetCell(line, 3, string.format("%.1f", resttable.ilvl), white10font)
-                     -- print (GUID)
-                      --print (resttable.class)
+                      debug_message(GUID)
+                      debug_message (resttable.class)
                       tooltip:SetLineColor(line, color.r, color.g, color.b)
                       if DraiksBrokerDB.db.profile.options.show_level then
                            tooltip:SetCell(line, 2, resttable.level, white10Font)
@@ -534,10 +552,10 @@ function dataobj:OnEnter()
         end
   
         if DraiksBrokerDB.foreigners == true then
-          -- SHow foreigners from RAM but not saved
+          -- Show foreigners from RAM but not saved
           for theirName,_ in pairs(DraiksBrokerDB.partyName) do
             if check_player_in_group(theirName) then
-               --print ("Found :" .. theirName)
+               debug_message("Found :" .. theirName)
                local line, column = tooltip:AddLine()
                if DraiksBrokerDB.db.profile.options.display_bars  then
                     color = RAID_CLASS_COLORS[DraiksBrokerDB.partyClass[theirName]]
@@ -706,129 +724,97 @@ function ilvlSort(a,b)
  
  
 function CalculateUnitItemLevel(unit)
- 
+    local t,c=0,0
+    local ail=0
     if CanInspect(unit) and CheckInteractDistance(unit, 1) then
         NotifyInspect(unit)
- 
-        local t,c=0,0
-        for i =1,18 do
+ 	debug_message("Inspected " .. unit)
+        for i =1,17 do
             if i~=4 then
-                local k=GetInventoryItemLink(unit,i)
-                if k then
-                    local iname,_,_,l=GetItemInfo(k)
+                local k=GetInventoryItemLink(GetUnitName(unit,true),i);
+                if (k) then
+                    local iname,_,_,l,_,_,_,_,_=GetItemInfo(k)
                     t=t+l
                     c=c+1
-                    --print ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
+                    debug_message ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
+                else
+                    debug_message ("Could not get inventory item ".. i .. " from " ..unit )
                 end
             end
         end
         ClearInspectPlayer()
         if c>0 then
-            --print(t/c)
-            return(t/c)
+            debug_message(unit .. " inspected with average iLevel " .. t/c)
+            ail=t/c
         end
+    else
+	debug_message("Could not inspect " .. unit)
+	
     end
+    return ail
 end
  
- 
- 
- 
-function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
-  
+function DraiksBrokerDB:GROUP_ROSTER_UPDATE(...)
    if GetNumGroupMembers() > 0 then
      if not self.db.profile.options.group.active then
         self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "group"
         self.db.profile.options.group.active = true
-        --print("Group party formed :" .. self.db.profile.options.group.formedDate)
-     else
-    --print("Already in party formed :" .. self.db.profile.options.group.formedDate)
+        debug_message("Group party formed :" .. self.db.profile.options.group.formedDate)
      end
    else
     self.db.profile.options.group.active = false
     DraiksBrokerDB.locals = false
+    zap(DraiksBrokerDB.partyClass)
+    zap(DraiksBrokerDB.partyName)
+    zap(DraiksBrokerDB.partyLevel )
+    zap(DraiksBrokerDB.partyiLvl)
+    zap(DraiksBrokerDB.scanqueue)
     DraiksBrokerDB.foreigners = false
-    zap(DraiksBrokerDB.partyClass)
-    zap(DraiksBrokerDB.partyName)
-    zap(DraiksBrokerDB.partyLevel )
-    zap(DraiksBrokerDB.partyiLvl)
-
-        --print("Group formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
-   end
-   if self.db.profile.options.group.type == "group" then
-      -- if we're in a raid the raid roster event will handle things
-       --print ("Starting Scan")
-       Scan_Party("party", GetNumPartyMembers())
-   end
-end
- 
-function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
-   if  self.db.profile.options.group.type == "group" then
-       -- we've been changed into a raid
-       self.db.profile.options.group.type = "raid"
-   end
- 
-   if GetNumGroupMembers() > 0 then
-     if not self.db.profile.options.group.active then
-        self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
-        self.db.profile.options.group.type = "raid"
-        self.db.profile.options.group.active = true
-        --print("Raid party formed :" .. self.db.profile.options.group.formedDate)
-     else
-    --print("Already in party formed :" .. self.db.profile.options.group.formedDate)
-     end
-   else
-    self.db.profile.options.group.active = false
-                    DraiksBrokerDB.locals = false
-    zap(DraiksBrokerDB.partyClass)
-    zap(DraiksBrokerDB.partyName)
-    zap(DraiksBrokerDB.partyLevel )
-    zap(DraiksBrokerDB.partyiLvl)
-               DraiksBrokerDB.foreigners = false
-
-        --print("Raid formed :" .. self.db.profile.options.group.formedDate .. " Disbanded")
+    debug_message("Group formed :" .. self.db.profile.options.group.formedDate .. " Successfully Disbanded")
    end 
  
-   Scan_Party("raid", GetNumRaidMembers())
+   Scan_Party()
 end
+
  
-function Scan_Party(type, numMembers)
-    --print("Event Captured of type: ", type)
-    --print("Raid Members: ",  GetNumRaidMembers())
-    --print("Party Members: ", GetNumPartyMembers())
-    --print("Real Party Members: ", GetRealNumPartyMembers())
-    for i=1, numMembers do
-     table.insert(DraiksBrokerDB.scanqueue, type..i)
-     --print("adding " .. type..i .. "to queue")
-     --ScanUnit(type..i)
-     i = i +1
+function Scan_Party(numMembers)
+    local type="party"
+    if IsInRaid() then
+        type="raid"
+    end
+    debug_message("Total ".. type .. " Members: " .. GetNumGroupMembers())
+    for i=1, GetNumGroupMembers() do
+      
+      table.insert(DraiksBrokerDB.scanqueue, type..i)
+      debug_message("adding " .. type..i .. " to queue")
+      --ScanUnit(i)
+      i = i +1
     end
 end
  
 function Scan_Unit(unit)
      returnval = false
      if CanInspect(unit) and CheckInteractDistance(unit, 1) then
-        local class_loc, class = UnitClass(unit)
-        local theirName = GetUnitName(unit)
-        local theiriLvl = CalculateUnitItemLevel(unit)
-        local theirLevel = UnitLevel(unit)
-        --print("Found " .. theirName  .." with average ilevel of " .. theiriLvl)
-        local theirGUID = UnitGUID(unit)
-       if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
- 
-        --if DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl = 0 then
-                DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
-                DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
-                DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
-                if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
+          debug_message("Scanning " .. unit)
+	  local class_loc, class = UnitClass(unit)
+          local theirName = GetUnitName(unit)
+          local theiriLvl = CalculateUnitItemLevel(unit)
+          local theirLevel = UnitLevel(unit)
+          debug_message("Found ".. class .. " " .. theirName  .." with average ilevel of " .. theiriLvl)
+          local theirGUID = UnitGUID(unit)
+          if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
+               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
+               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
+               if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
                     DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
-                end
-                -- I have them take them out of the queue
-                returnval = true
-                DraiksBrokerDB.locals = true
-        --end
-       else
-               --print("Added " .. theirName .. " to local table.")
+               end
+               -- I have them take them out of the queue
+               returnval = true
+               DraiksBrokerDB.locals = true
+          else
+               debug_message("Added " .. theirName .. " to local table.")
                DraiksBrokerDB.partyClass[theirName] =  class
                DraiksBrokerDB.partyLevel[theirName] =  theirLevel
                DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
@@ -837,22 +823,30 @@ function Scan_Unit(unit)
                 -- I have them take them out of the queue
                returnval = true
                DraiksBrokerDB.foreigners = true
-       end
-      end
+          end
+     else
+	debug_message("Cannot inspect " .. unit .." " .. GetUnitName(unit) .. " leaving them in the queue")
+     end
      return returnval
 end
  
 function DraiksBrokerDB:TimerQueue()
  
     for i,v in ipairs(DraiksBrokerDB.scanqueue) do
-       --print ("about to scan unit " .. v)
-       if not UnitAffectingCombat("player") then
-          if Scan_Unit(v) then
-                table.remove(DraiksBrokerDB.scanqueue, i)
-          end
-        end
+       debug_message ("about to scan unit " .. v .. " " .. GetUnitName(v) )
+       if UnitIsUnit(v, "player") then
+	  table.remove(DraiksBrokerDB.scanqueue, i)
+	  debug_message("Removed unit " .. v .. " from queue as it is me")
+       else 
+          if not UnitAffectingCombat("player") then
+             if Scan_Unit(v) then
+                   table.remove(DraiksBrokerDB.scanqueue, i)
+		   debug_message("Removed unit " .. v .. " from queue")
+             end
+           end
+       end
     end
-    --print("Num Units in queue: ", # DraiksBrokerDB.scanqueue)
+    debug_message("Num Units in queue: ", #(DraiksBrokerDB.scanqueue))
 end
 
 function zap(table)
@@ -866,14 +860,24 @@ end
 
 function check_player_in_group(name)
     local found = false
+    local type="party"
+    if IsInRaid() then
+        type="raid"
+    end
     -- if its you skip it
     if name ~= DraiksBrokerDB.pc then
        -- loop party members
        for i=1, GetNumGroupMembers() do
-            if GetUnitName("party" .. i) == name then
+            if GetUnitName(type .. i) == name then
               found = true
            end
        end
     end
     return found
+end
+
+function debug_message(message)
+    if DraiksBrokerDB:GetOption('debug_mode') then
+	print("DIB: " .. message)
+    end
 end
