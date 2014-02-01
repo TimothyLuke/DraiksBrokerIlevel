@@ -735,7 +735,7 @@ end
  
 function DraiksBrokerDB:PARTY_MEMBERS_CHANGED(...)
   
-   if GetNumPartyMembers() > 0 or GetNumRaidMembers() > 0 then
+   if GetNumGroupMembers() > 0 then
      if not self.db.profile.options.group.active then
         self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "group"
@@ -768,7 +768,7 @@ function DraiksBrokerDB:RAID_ROSTER_UPDATE(...)
        self.db.profile.options.group.type = "raid"
    end
  
-   if GetNumRaidMembers() > 0 then
+   if GetNumGroupMembers() > 0 then
      if not self.db.profile.options.group.active then
         self.db.profile.options.group.formedDate = date("%y/%m/%d %H:%M:%S")
         self.db.profile.options.group.type = "raid"
@@ -869,17 +869,8 @@ function check_player_in_group(name)
     -- if its you skip it
     if name ~= DraiksBrokerDB.pc then
        -- loop party members
-       for i=1, GetNumPartyMembers() do
+       for i=1, GetNumGroupMembers() do
             if GetUnitName("party" .. i) == name then
-              found = true
-           end
-       end
-
-
-
-       -- loop raid members
-       for i=1, GetNumRaidMembers() do
-           if GetUnitName("raid" .. i) == name then
               found = true
            end
        end
