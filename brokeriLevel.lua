@@ -727,21 +727,16 @@ function ilvlSort(a,b)
   return DraiksBrokerDB.sort_table[a].ilvl < DraiksBrokerDB.sort_table[b].ilvl end
  
  
-function CalculateUnitItemLevel(items)
+function CalculateUnitItemLevel(calcItems)
     local t,c=0,0
     local ail=0
- 	      debug_message("Calculating iLevel")
+ 	debug_message("Calculating iLevel")
         for i =1,17 do
             if i~=4 then
-                local k=GetInventoryItemLink(items[i]);
-                if (k) then
-                    local iname,_,_,l,_,_,_,_,_=GetItemInfo(k)
-                    t=t+l
-                    c=c+1
-                    debug_message ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
-                else
-                    debug_message ("Could not get inventory item ".. i )
-                end
+                local iname,_,_,l,_,_,_,_,_=GetItemInfo(calcItems[i])
+                t=t+l
+                c=c+1
+                debug_message ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. (t/c) .. " Iteration: " .. i)
             end
         end
         if c>0 then
@@ -890,11 +885,17 @@ function check_player_in_group(name)
 end
 
 function getOwnInventory(unit)
-  local myItems 
+  myItems = {} 
   for i =1,17 do
-     myItems[i]=GetInventoryItemLink(GetUnitName(unit,true),i);
+     local itemLink = GetInventoryItemLink("player", i);
+     if itemLink == nil then
+       debug_message("Nothing in slot " .. i)
+     else
+       debug_message("added Item in slot " .. i)
+       myItems[i]=itemLink
+     end
   end
-  return CalculateUnitItemLevel(items)
+  return CalculateUnitItemLevel(myItems)
 end
 
 function debug_message(message)
