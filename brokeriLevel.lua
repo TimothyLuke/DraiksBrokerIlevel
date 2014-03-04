@@ -8,12 +8,16 @@ local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
 local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
 -- Get a reference to the lib
 local LibQTip = LibStub('LibQTip-1.0')
+local LibInspect = LibStub('LibInspect')
 local dataobj = ldb:NewDataObject(L["Draiks Broker ILevel"], {type = "data source", text = "ilvl: 200"})
-
+local inspecthook = LibInspect:AddHook('DraiksBrokerDB', "items", function(guid, data, age) storeInspectedData(guid, data, age); end);
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
+f:RegisterEvent("CHAT_MSG_ADDON")
+local messagePrefix = "DRAIKSBROKERILVL" 
+RegisterAddonMessagePrefix(messagePrefix)
 
- 
+
 -- Setup Display Fonts
 -- Hunter
 hunterFont = CreateFont("hunterFont")
@@ -163,7 +167,7 @@ function DraiksBrokerDB:OnInitialize()
      self.realm = GetRealmName()
      self.pc = UnitName("player")
      if self.db.profile.options.calculate_own_ilvl then
-          self.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)
+          self.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(getOwnInventory(self.pc))
      else
           self.db.global.data[self.faction][self.realm][self.pc].ilvl = GetAverageItemLevel()
      end
@@ -420,14 +424,14 @@ f:SetScript("OnUpdate", function(self, elap)
      end
      
      if DraiksBrokerDB.db.profile.options.calculate_own_ilvl then
-          DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(self.pc)
+          DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl = CalculateUnitItemLevel(getOwnInventory(self.pc))
      end
      DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].level = UnitLevel("player")
      dataobj.text = string.format("ilvl: %.1f", DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl)
 
      addonLoadedBool = true
  
- 
+     SendAddonMessage(messagePrefix, DraiksBrokerDB.db.global.data[self.faction][self.realm][self.pc].ilvl, "RAID")
  
 end)
  
@@ -723,34 +727,27 @@ function ilvlSort(a,b)
   return DraiksBrokerDB.sort_table[a].ilvl < DraiksBrokerDB.sort_table[b].ilvl end
  
  
-function CalculateUnitItemLevel(unit)
+function CalculateUnitItemLevel(items)
     local t,c=0,0
     local ail=0
-    if CanInspect(unit) and CheckInteractDistance(unit, 1) then
-        NotifyInspect(unit)
- 	debug_message("Inspected " .. unit)
+ 	      debug_message("Calculating iLevel")
         for i =1,17 do
             if i~=4 then
-                local k=GetInventoryItemLink(GetUnitName(unit,true),i);
+                local k=GetInventoryItemLink(items[i]);
                 if (k) then
                     local iname,_,_,l,_,_,_,_,_=GetItemInfo(k)
                     t=t+l
                     c=c+1
                     debug_message ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. t/c)
                 else
-                    debug_message ("Could not get inventory item ".. i .. " from " ..unit )
+                    debug_message ("Could not get inventory item ".. i )
                 end
             end
         end
-        ClearInspectPlayer()
         if c>0 then
-            debug_message(unit .. " inspected with average iLevel " .. t/c)
+            debug_message("Inspected with average iLevel " .. t/c)
             ail=t/c
         end
-    else
-	debug_message("Could not inspect " .. unit)
-	
-    end
     return ail
 end
  
@@ -777,6 +774,13 @@ function DraiksBrokerDB:GROUP_ROSTER_UPDATE(...)
    Scan_Party()
 end
 
+function DraiksBrokerDB:CHAT_MSG_ADDON(prefix, message, channel, sender)
+    debug_message("Got message from " .. sender .. " with ilevel of " .. message)
+    if self.db.profile.options.group.active then
+        local _, theirClass = UnitClass(sender)
+        return addUsertoDB(sender, theirClass, sender, UnitLevel(sender), message )
+    end
+end
  
 function Scan_Party(numMembers)
     local type="party"
@@ -794,40 +798,49 @@ function Scan_Party(numMembers)
 end
  
 function Scan_Unit(unit)
-     returnval = false
-     if CanInspect(unit) and CheckInteractDistance(unit, 1) then
+     caninspect, unitfound, refreshing = LibInspect:RequestData("items", unit, false)
+     if (caninspect and unitfound) then
           debug_message("Scanning " .. unit)
-	  local class_loc, class = UnitClass(unit)
-          local theirName = GetUnitName(unit)
-          local theiriLvl = CalculateUnitItemLevel(unit)
-          local theirLevel = UnitLevel(unit)
-          debug_message("Found ".. class .. " " .. theirName  .." with average ilevel of " .. theiriLvl)
-          local theirGUID = UnitGUID(unit)
-          if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
-               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
-               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
-               DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
-               if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
-                    DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
-               end
-               -- I have them take them out of the queue
-               returnval = true
-               DraiksBrokerDB.locals = true
-          else
-               debug_message("Added " .. theirName .. " to local table.")
-               DraiksBrokerDB.partyClass[theirName] =  class
-               DraiksBrokerDB.partyLevel[theirName] =  theirLevel
-               DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
-               DraiksBrokerDB.partyName[theirName] =  theirName
-               
-                -- I have them take them out of the queue
-               returnval = true
-               DraiksBrokerDB.foreigners = true
-          end
+          
      else
-	debug_message("Cannot inspect " .. unit .." " .. GetUnitName(unit) .. " leaving them in the queue")
+	        debug_message("Cannot inspect " .. unit .." " .. GetUnitName(unit) .. " leaving them in the queue")
      end
-     return returnval
+end
+
+function storeInspectedData(returnedGuid, returnedItems, returnedAge)
+      returnval = false
+      local class_loc, class, locRace, engRace, gender, theirName, realm = GetPlayerInfoByGUID(returnedGuid);
+      local theiriLvl = CalculateUnitItemLevel(returnedItems)
+      local theirLevel = UnitLevel(theirName)
+      debug_message("Found ".. class .. " " .. theirName  .." with average ilevel of " .. theiriLvl)
+      return addUsertoDB(theirName, class, theirName, theirLevel, theiriLvl )
+end
+
+function addUsertoDB(unit,class,name,level,ilvl)
+      local theirGUID = UnitGUID(unit)
+      if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
+           DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+           DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
+           DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
+           if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
+                DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl =  theiriLvl
+           end
+           -- I have them take them out of the queue
+           returnval = true
+           DraiksBrokerDB.locals = true
+      else
+           debug_message("Added " .. theirName .. " to local table.")
+           DraiksBrokerDB.partyClass[theirName] =  class
+           DraiksBrokerDB.partyLevel[theirName] =  theirLevel
+           DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
+           DraiksBrokerDB.partyName[theirName] =  theirName
+           
+            -- I have them take them out of the queue
+           returnval = true
+           DraiksBrokerDB.foreigners = true
+      end
+      return returnval
+
 end
  
 function DraiksBrokerDB:TimerQueue()
@@ -839,9 +852,9 @@ function DraiksBrokerDB:TimerQueue()
 	  debug_message("Removed unit " .. v .. " from queue as it is me")
        else 
           if not UnitAffectingCombat("player") then
-             if Scan_Unit(v) then
+             if DraiksBrokerDB.db.global.data.partyData[UnitGUID(v)][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
                    table.remove(DraiksBrokerDB.scanqueue, i)
-		   debug_message("Removed unit " .. v .. " from queue")
+		               debug_message("Removed unit " .. v .. " from queue")
              end
            end
        end
@@ -876,8 +889,16 @@ function check_player_in_group(name)
     return found
 end
 
+function getOwnInventory(unit)
+  local myItems 
+  for i =1,17 do
+     myItems[i]=GetInventoryItemLink(GetUnitName(unit,true),i);
+  end
+  return CalculateUnitItemLevel(items)
+end
+
 function debug_message(message)
     if DraiksBrokerDB:GetOption('debug_mode') then
-	print("DIB: " .. message)
+	      print("DIB: " .. message)
     end
 end

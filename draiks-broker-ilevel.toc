@@ -7,6 +7,10 @@
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 ## SavedVariables: draiksAddonInitialised ilvlDB
+## X-Curse-Packaged-Version: r58
+## X-Curse-Project-Name: Draiks Broker iLevel
+## X-Curse-Project-ID: draiks-broker-ilevel
+## X-Curse-Repository-ID: wow/draiks-broker-ilevel/mainline
 
 
 
@@ -14,6 +18,7 @@ Lib\LibStub\LibStub.lua
 Lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Lib\LibDataBroker-1.1\libDataBroker-1.1.lua
 Lib\LibQTip-1.0\LibQTip-1.0.lua
+Lib\LibInspect\LibInspect.lua
 
 
 embeds.xml

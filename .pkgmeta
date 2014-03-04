@@ -32,4 +32,7 @@ externals:
     Lib/AceTimer-3.0:
         url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
         tag: latest
+    Lib/LibInspect:
+        url: svn://svn.wowace.com/wow/libinspect/mainline/trunk
+        tag: latest
 enable-nolib-creation: no
