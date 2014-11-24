@@ -1,7 +1,7 @@
-﻿## Interface: 50400
+﻿## Interface: 60000
 ## Title: Draiks Broker iLevel
 ## Notes: Shows current iLevel
-## Author: Draik@Silvermoon@US
+## Author: Draik@Nagrand@AU
 ## X-eMail: timothy@minahan.net
 ## X-Category: Miscellaneous
 ## LoadManagers: AddonLoader
