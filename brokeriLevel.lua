@@ -4,9 +4,14 @@ local class, classFileName = UnitClass("player");
 local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
 local iLevel = GetAverageItemLevel()
+--------------------------------------
+-- LDB Libs Here
+--------------------------------------
 local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
 local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
--- Get a reference to the lib
+--------------------------------------
+-- ACE Libs Here
+--------------------------------------
 local LibQTip = LibStub('LibQTip-1.0')
 local LibInspect = LibStub('LibInspect')
 local dataobj = ldb:NewDataObject(L["Draiks Broker ILevel"], {type = "data source", text = "ilvl: 200"})
@@ -16,6 +21,11 @@ f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 f:RegisterEvent("CHAT_MSG_ADDON")
 local messagePrefix = "DRAIKSBROKERILVL" 
 RegisterAddonMessagePrefix(messagePrefix)
+--------------------------------------
+-- Elv Libs Here
+--------------------------------------
+
+
 
 
 -- Setup Display Fonts
