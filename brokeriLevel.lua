@@ -849,20 +849,23 @@ function addUsertoDB(unit,class,name,level,ilvl)
 end
  
 function DraiksBrokerDB:TimerQueue()
- 
-    for i,v in ipairs(DraiksBrokerDB.scanqueue) do
-       debug_message ("about to scan unit " .. v .. " " .. GetUnitName(v) )
-       if UnitIsUnit(v, "player") then
-	  table.remove(DraiksBrokerDB.scanqueue, i)
-	  debug_message("Removed unit " .. v .. " from queue as it is me")
-       else 
+     for i,v in ipairs(DraiksBrokerDB.scanqueue) do
+      if not v then -- Null check for nothing in v
+		debug_message ("about to scan unit " .. v .. " " .. GetUnitName(v) )
+		if UnitIsUnit(v, "player") then
+		table.remove(DraiksBrokerDB.scanqueue, i)
+		debug_message("Removed unit " .. v .. " from queue as it is me")
+		else 
           if not UnitAffectingCombat("player") then
              if DraiksBrokerDB.db.global.data.partyData[UnitGUID(v)][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
                    table.remove(DraiksBrokerDB.scanqueue, i)
 		               debug_message("Removed unit " .. v .. " from queue")
              end
            end
-       end
+		end
+	  else
+	    debug_message ("about to scan unit but nothing found to scan")
+	  end
     end
     debug_message("Num Units in queue: ", #(DraiksBrokerDB.scanqueue))
 end
