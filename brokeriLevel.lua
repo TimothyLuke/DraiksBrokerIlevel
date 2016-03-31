@@ -787,17 +787,16 @@ function DraiksBrokerDB:CHAT_MSG_ADDON(prefix, message, channel, sender)
     end
 end
  
-function Scan_Party(numMembers)
+function Scan_Party()
     local type="party"
     if IsInRaid() then
         type="raid"
     end
-    debug_message("Total ".. type .. " Members: " .. GetNumGroupMembers())
+    debug_message("Total ".. type .. " Members: " .. GetNumGroupMembers() )
     for i=1, GetNumGroupMembers() do
       
       table.insert(DraiksBrokerDB.scanqueue, type..i)
       debug_message("adding " .. type..i .. " to queue")
-      --ScanUnit(i)
       i = i +1
     end
 end
@@ -824,7 +823,8 @@ end
 function addUsertoDB(unit,class,name,level,ilvl)
       local theirGUID = UnitGUID(unit)
       if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
-           DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+           debug_message("Added " .. theirName .. " to permanent table.")
+		   DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
            DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
            DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
            if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
@@ -839,8 +839,7 @@ function addUsertoDB(unit,class,name,level,ilvl)
            DraiksBrokerDB.partyLevel[theirName] =  theirLevel
            DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
            DraiksBrokerDB.partyName[theirName] =  theirName
-           
-            -- I have them take them out of the queue
+           -- I have them take them out of the queue
            returnval = true
            DraiksBrokerDB.foreigners = true
       end
@@ -864,7 +863,7 @@ function DraiksBrokerDB:TimerQueue()
            end
 		end
 	  else
-	    debug_message ("about to scan unit but nothing found to scan")
+	    debug_message ("About to scan unit but nothing found to scan at index " .. i)
 	  end
     end
     debug_message("Num Units in queue: ", #(DraiksBrokerDB.scanqueue))
@@ -880,7 +879,8 @@ function zap(table)
 end
 
 function check_player_in_group(name)
-    local found = false
+    debug_message(("Checking for " .. name)
+	local found = false
     local type="party"
     if IsInRaid() then
         type="raid"
@@ -891,6 +891,7 @@ function check_player_in_group(name)
        for i=1, GetNumGroupMembers() do
             if GetUnitName(type .. i) == name then
               found = true
+			  debug_message(("found " .. name " at " .. type .. i)
            end
        end
     end
