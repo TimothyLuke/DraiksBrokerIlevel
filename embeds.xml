@@ -10,6 +10,7 @@
 <Include file="Lib\AceEvent-3.0\AceEvent-3.0.xml" /> 
 <Include file="Lib\AceLocale-3.0\AceLocale-3.0.xml" /> 
 <Include file="Lib\AceTimer-3.0\AceTimer-3.0.xml" />
+<Include file="Lib\AceGUI-3.0\AceGUI-3.0.xml" />
 <Include file="Lib\LibSharedMedia-3.0\LibSharedMedia-3.0.xml" />
 <!--@end-no-lib-strip@-->
 
