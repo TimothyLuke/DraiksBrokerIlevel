@@ -29,7 +29,7 @@ local LibSharedMedia = LibStub('LibSharedMedia-3.0')
 local baseFont = CreateFont("baseFont")
 
 -- CHeck for ElvUI
-if LibSharedMedia:IsValid('font', ElvUI[1].db.general.font)
+if LibSharedMedia:IsValid('font', ElvUI[1].db.general.font) then
 	baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
 else
 	baseFont:SetFont(baseFont:GetFont(), 10)
@@ -895,7 +895,7 @@ function zap(table)
 end
 
 function check_player_in_group(name)
-    debug_message(("Checking for " .. name)
+    debug_message("Checking for " .. name)
 	local found = false
     local type="party"
     if IsInRaid() then
@@ -907,7 +907,7 @@ function check_player_in_group(name)
        for i=1, GetNumGroupMembers() do
             if GetUnitName(type .. i) == name then
               found = true
-			  debug_message(("found " .. name " at " .. type .. i)
+			  debug_message("found " .. name " at " .. type .. i)
            end
        end
     end
