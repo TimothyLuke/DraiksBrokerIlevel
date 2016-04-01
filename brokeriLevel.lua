@@ -4,6 +4,11 @@ local class, classFileName = UnitClass("player");
 local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
 local iLevel = GetAverageItemLevel()
+f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
+f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
+f:RegisterEvent("CHAT_MSG_ADDON")
+local messagePrefix = "DRAIKSBROKERILVL" 
+RegisterAddonMessagePrefix(messagePrefix)
 --------------------------------------
 -- LDB Libs Here
 --------------------------------------
@@ -16,72 +21,100 @@ local LibQTip = LibStub('LibQTip-1.0')
 local LibInspect = LibStub('LibInspect')
 local dataobj = ldb:NewDataObject(L["Draiks Broker ILevel"], {type = "data source", text = "ilvl: 200"})
 local inspecthook = LibInspect:AddHook('DraiksBrokerDB', "items", function(guid, data, age) storeInspectedData(guid, data, age); end);
-f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
-f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
-f:RegisterEvent("CHAT_MSG_ADDON")
-local messagePrefix = "DRAIKSBROKERILVL" 
-RegisterAddonMessagePrefix(messagePrefix)
+local LibSharedMedia = LibStub('LibSharedMedia-3.0')
 --------------------------------------
--- Elv Libs Here
+-- Font Configs
 --------------------------------------
 
+local baseFont = CreateFont("baseFont")
 
-
+-- CHeck for ElvUI
+if LibSharedMedia:IsValid('font', ElvUI[1].db.general.font)
+	baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
+else
+	baseFont:SetFont(baseFont:GetFont(), 10)
+end
 
 -- Setup Display Fonts
+-- New font looking like GameTooltipText but White with height 12
+local white10Font = CreateFont("white10Font")
+white10Font:CopyFontObject(baseFont)
+white10Font:SetTextColor(1,1,1)
+ 
+-- New font looking like White15font but with height 14
+local white14Font = CreateFont("white14Font")
+white14Font:CopyFontObject(baseFont)
+white14Font:SetFont(baseFont:GetFont(), 14)
+ 
+local hordeFont = CreateFont("hordeFont")
+hordeFont:CopyFontObject(baseFont)
+hordeFont:SetTextColor(1,0,0)
+hordeFont:SetFont(hordeFont:GetFont(), 14)
+ 
+local allianceFont = CreateFont("allianceFont")
+allianceFont:CopyFontObject(baseFont)
+allianceFont:SetTextColor(0,0,1)
+allianceFont:SetFont(allianceFont:GetFont(), 14)
+ 
+-- New font looking like GameTooltipText but White with height 15
+local green12Font = CreateFont("green12Font")
+green12Font:SetFont(baseFont:GetFont(), 12)
+green12Font:SetTextColor(0,1,0)
+
+
 -- Hunter
 hunterFont = CreateFont("hunterFont")
-hunterFont:SetFont(GameTooltipText:GetFont(), 10)
+hunterFont:SetFont(baseFont:GetFont(), 10)
 hunterFont:SetTextColor(RAID_CLASS_COLORS["HUNTER"].r,RAID_CLASS_COLORS["HUNTER"].g,RAID_CLASS_COLORS["HUNTER"].b)
  
 -- Warlock
 warlockFont = CreateFont("warlockFont")
-warlockFont:SetFont(GameTooltipText:GetFont(), 10)
+warlockFont:SetFont(baseFont:GetFont(), 10)
 warlockFont:SetTextColor(RAID_CLASS_COLORS["WARLOCK"].r,RAID_CLASS_COLORS["WARLOCK"].g,RAID_CLASS_COLORS["WARLOCK"].b)
  
 -- Priest
 priestFont = CreateFont("priestFont")
-priestFont:SetFont(GameTooltipText:GetFont(), 10)
+priestFont:SetFont(baseFont:GetFont(), 10)
 priestFont:SetTextColor(RAID_CLASS_COLORS["PRIEST"].r,RAID_CLASS_COLORS["PRIEST"].g,RAID_CLASS_COLORS["PRIEST"].b)
  
 -- Mage
 mageFont = CreateFont("mageFont")
-mageFont:SetFont(GameTooltipText:GetFont(), 10)
+mageFont:SetFont(baseFont:GetFont(), 10)
 mageFont:SetTextColor(RAID_CLASS_COLORS["MAGE"].r,RAID_CLASS_COLORS["MAGE"].g,RAID_CLASS_COLORS["MAGE"].b)
  
 -- Paladin
 paladinFont = CreateFont("paladinFont")
-paladinFont:SetFont(GameTooltipText:GetFont(), 10)
+paladinFont:SetFont(baseFont:GetFont(), 10)
 paladinFont:SetTextColor(RAID_CLASS_COLORS["PALADIN"].r,RAID_CLASS_COLORS["PALADIN"].g,RAID_CLASS_COLORS["PALADIN"].b)
  
 -- Shaman
 shamanFont = CreateFont("shamanFont")
-shamanFont:SetFont(GameTooltipText:GetFont(), 10)
+shamanFont:SetFont(baseFont:GetFont(), 10)
 shamanFont:SetTextColor(RAID_CLASS_COLORS["SHAMAN"].r,RAID_CLASS_COLORS["SHAMAN"].g,RAID_CLASS_COLORS["SHAMAN"].b)
  
 -- Druid
 druidFont = CreateFont("druidFont")
-druidFont:SetFont(GameTooltipText:GetFont(), 10)
+druidFont:SetFont(baseFont:GetFont(), 10)
 druidFont:SetTextColor(RAID_CLASS_COLORS["DRUID"].r,RAID_CLASS_COLORS["DRUID"].g,RAID_CLASS_COLORS["DRUID"].b)
  
 -- deathknight
 deathknightFont = CreateFont("deathknightFont") 
-deathknightFont:SetFont(GameTooltipText:GetFont(), 10)
+deathknightFont:SetFont(baseFont:GetFont(), 10)
 deathknightFont:SetTextColor(RAID_CLASS_COLORS["DEATHKNIGHT"].r,RAID_CLASS_COLORS["DEATHKNIGHT"].g,RAID_CLASS_COLORS["DEATHKNIGHT"].b)
  
 -- Rogue
 rogueFont = CreateFont("rogueFont")
-rogueFont:SetFont(GameTooltipText:GetFont(), 10)
+rogueFont:SetFont(baseFont:GetFont(), 10)
 rogueFont:SetTextColor(RAID_CLASS_COLORS["ROGUE"].r,RAID_CLASS_COLORS["ROGUE"].g,RAID_CLASS_COLORS["ROGUE"].b)
  
 -- Warrior
 warriorFont = CreateFont("warriorFont")
-warriorFont:SetFont(GameTooltipText:GetFont(), 10)
+warriorFont:SetFont(baseFont:GetFont(), 10)
 warriorFont:SetTextColor(RAID_CLASS_COLORS["WARRIOR"].r,RAID_CLASS_COLORS["WARRIOR"].g,RAID_CLASS_COLORS["WARRIOR"].b)
 
 -- Monk
 monkFont = CreateFont("monkFont")
-monkFont:SetFont(GameTooltipText:GetFont(), 10)
+monkFont:SetFont(baseFont:GetFont(), 10)
 monkFont:SetTextColor(RAID_CLASS_COLORS["MONK"].r,RAID_CLASS_COLORS["MONK"].g,RAID_CLASS_COLORS["MONK"].b)
  
 CLASS_FONTS = {
@@ -97,6 +130,10 @@ CLASS_FONTS = {
     ["DEATHKNIGHT"] = deathknightFont,
     ["MONK"] = monkFont,
 };
+
+--------------------------------------
+-- Font Configs
+--------------------------------------
  
 function DraiksBrokerDB:OnInitialize()
  
@@ -453,32 +490,6 @@ function dataobj:OnEnter()
  
      tooltip:Clear()
  
-     -- New font looking like GameTooltipText but White with height 12
-     local white10Font = CreateFont("white10Font")
-     white10Font:SetFont(GameTooltipText:GetFont(), 10)
-     white10Font:SetTextColor(1,1,1)
- 
-     -- New font looking like White15font but with height 14
-     local white14Font = CreateFont("white14Font")
-     white14Font:CopyFontObject(white10Font)
-     white14Font:SetFont(white14Font:GetFont(), 14)
- 
-     local hordeFont = CreateFont("hordeFont")
-     hordeFont:CopyFontObject(white10Font)
-     hordeFont:SetTextColor(1,0,0)
-     hordeFont:SetFont(hordeFont:GetFont(), 14)
- 
-     local allianceFont = CreateFont("allianceFont")
-     allianceFont:CopyFontObject(white10Font)
-     allianceFont:SetTextColor(0,0,1)
-     allianceFont:SetFont(allianceFont:GetFont(), 14)
- 
-     -- New font looking like GameTooltipText but White with height 15
-     local green12Font = CreateFont("green12Font")
-     green12Font:SetFont(GameTooltipText:GetFont(), 12)
-     green12Font:SetTextColor(0,1,0)
- 
- 
  
      tooltip:SetFont(white10Font)
      tooltip:SetHeaderFont(white14Font)
@@ -607,6 +618,11 @@ function dataobj:OnLeave()
    self.tooltip = nil
 end
  
+function dataobj:OnClick()
+	-- Do Nothing added to solve a Null when used as a part of Elv
+
+
+end
  
 function DraiksBrokerDB:GetOption( option, ... )
  
