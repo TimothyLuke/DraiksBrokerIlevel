@@ -4,6 +4,8 @@ local class, classFileName = UnitClass("player");
 local f = CreateFrame("frame")
 local name = GetUnitName("player", false);
 local iLevel = GetAverageItemLevel()
+local tname
+local tunit
 f:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 f:RegisterEvent("PLAYER_LOGOUT"); -- Fired when about to log out
 f:RegisterEvent("CHAT_MSG_ADDON")
@@ -18,9 +20,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("DraiksBrokerDB")
 -- ACE Libs Here
 --------------------------------------
 local LibQTip = LibStub('LibQTip-1.0')
-local LibInspect = LibStub('LibInspect')
 local dataobj = ldb:NewDataObject(L["Draiks Broker ILevel"], {type = "data source", text = "ilvl: 200"})
-local inspecthook = LibInspect:AddHook('DraiksBrokerDB', "items", function(guid, data, age) storeInspectedData(guid, data, age); end);
 local LibSharedMedia = LibStub('LibSharedMedia-3.0')
 --------------------------------------
 -- Font Configs
@@ -30,9 +30,9 @@ local baseFont = CreateFont("baseFont")
 
 -- CHeck for ElvUI
 if LibSharedMedia:IsValid('font', ElvUI[1].db.general.font) then
-	baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
+    baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
 else
-	baseFont:SetFont(baseFont:GetFont(), 10)
+    baseFont:SetFont(baseFont:GetFont(), 10)
 end
 
 -- Setup Display Fonts
@@ -132,7 +132,7 @@ CLASS_FONTS = {
 };
 
 --------------------------------------
--- Font Configs
+-- Initialisation
 --------------------------------------
  
 function DraiksBrokerDB:OnInitialize()
@@ -426,6 +426,7 @@ function DraiksBrokerDB:OnInitialize()
  
      -- Check if already in party
      if GetNumGroupMembers() == 0 then
+          -- if the mod thingks we are in a party close it out
           if self.db.profile.options.group.active then
                self.db.profile.options.group.active = false
                debug_message("Group party formed :" .. self.db.profile.options.group.formedDate)
@@ -436,24 +437,7 @@ function DraiksBrokerDB:OnInitialize()
      self.queueTimer = self:ScheduleRepeatingTimer("TimerQueue", 10)
  
 end
- 
-function formatFaction(faction)
-    if faction == "partyData" then
-        faction = "Other Player Characters"
-    end
-    return faction
-end
- 
-function formatRealm(faction,realm)
-    returnval = realm
-    if faction == "partyData" then
-        for  _, raid_table in pairs(DraiksBrokerDB.db.global.data.partyData[realm]) do
-            returnval = raid_table.name
-        end
-    end
-    return returnval
-end
- 
+
 f:SetScript("OnUpdate", function(self, elap)
      elapsed = elapsed + elap
      if elapsed < UPDATEPERIOD then return end
@@ -482,6 +466,30 @@ f:SetScript("OnUpdate", function(self, elap)
  
 end)
  
+--------------------------------------
+-- Formating Functions
+--------------------------------------
+
+function formatFaction(faction)
+    if faction == "partyData" then
+        faction = "Other Player Characters"
+    end
+    return faction
+end
+ 
+function formatRealm(faction,realm)
+    returnval = realm
+    if faction == "partyData" then
+        for  _, raid_table in pairs(DraiksBrokerDB.db.global.data.partyData[realm]) do
+            returnval = raid_table.name
+        end
+    end
+    return returnval
+end
+
+--------------------------------------
+-- LibDataBroker Display Object Functions
+--------------------------------------
  
 function dataobj:OnEnter()
      -- Acquire a tooltip with 3 columns, respectively aligned to left, center and right
@@ -619,10 +627,12 @@ function dataobj:OnLeave()
 end
  
 function dataobj:OnClick()
-	-- Do Nothing added to solve a Null when used as a part of Elv
-
-
+    -- Do Nothing added to solve a Null when used as a part of Elv
 end
+
+--------------------------------------
+-- Addon Configuration Functions
+--------------------------------------
  
 function DraiksBrokerDB:GetOption( option, ... )
  
@@ -732,7 +742,9 @@ function DraiksBrokerDB:FetchOrderedNames(names, characters)
     end
 end
  
- 
+--------------------------------------
+-- Utility Functions
+-------------------------------------- 
  
 function revAlphaSort(a,b)
     return b < a
@@ -752,18 +764,31 @@ function revilvlSort(a,b)
 function ilvlSort(a,b)
   return DraiksBrokerDB.sort_table[a].ilvl < DraiksBrokerDB.sort_table[b].ilvl end
  
+-- Clears a Lua Table
+function zap(table)
+    local next = next
+    local k = next(table)
+    while k do
+        table[k] = nil
+        k = next(table)
+    end
+end
+
  
 function CalculateUnitItemLevel(calcItems)
     local t,c=0,0
     local ail=0
  	debug_message("Calculating iLevel")
         for i =1,17 do
+          if not isempty(calcItems[i]) then
             if i~=4 then
+                debug_message ("Testing " .. calcItems[i])
                 local iname,_,_,l,_,_,_,_,_=GetItemInfo(calcItems[i])
                 t=t+l
                 c=c+1
                 debug_message ("Found " .. iname .. ". ilvl: " .. l .. ", total=" .. t .. " Average= " .. (t/c) .. " Iteration: " .. i)
             end
+          end
         end
         if c>0 then
             debug_message("Inspected with average iLevel " .. t/c)
@@ -771,6 +796,64 @@ function CalculateUnitItemLevel(calcItems)
         end
     return ail
 end
+
+function check_player_in_group(name)
+    debug_message("Checking for " .. name)
+    local found = false
+    local type="party"
+    if IsInRaid() then
+        type="raid"
+    end
+    -- if its you skip it
+    if name ~= DraiksBrokerDB.pc then
+       -- loop party members
+       for i=1, GetNumGroupMembers() do
+            if GetUnitName(type .. i) == name then
+              found = true
+              debug_message("found " .. name .. " at " .. type .. i)
+           end
+       end
+    end
+    return found
+end
+
+function getOwnInventory(unit)
+  myItems = getInventory(unit)
+  return CalculateUnitItemLevel(myItems)
+end
+
+function getInventory(unit)
+  unitItems = {} 
+  for i =1,17 do
+     local itemLink = GetInventoryItemLink(unit, i);
+     if itemLink == nil then
+       debug_message("Nothing in slot " .. i)
+     else
+       debug_message("added Item in slot " .. i)
+       unitItems[i]=itemLink
+     end
+  end
+  return unitItems
+end
+
+function debug_message(message)
+    if DraiksBrokerDB:GetOption('debug_mode') then
+        print("DIB: " .. message)
+    end
+end
+
+function checkCombat()
+    if UnitAffectingCombat('player') then 
+         return 1
+    end
+end
+
+function isempty(s)
+  return s == nil or s == ''
+end
+--------------------------------------
+-- Party List Functions
+--------------------------------------
  
 function DraiksBrokerDB:GROUP_ROSTER_UPDATE(...)
    if GetNumGroupMembers() > 0 then
@@ -791,8 +874,28 @@ function DraiksBrokerDB:GROUP_ROSTER_UPDATE(...)
     DraiksBrokerDB.foreigners = false
     debug_message("Group formed :" .. self.db.profile.options.group.formedDate .. " Successfully Disbanded")
    end 
- 
-   Scan_Party()
+end
+
+function DraiksBrokerDB:InspectReady()
+    DraiksBrokerDB:UnregisterEvent("INSPECT_READY")
+    local unit = DraiksBrokerDB.tunit
+    local missing -- will be true if any links missing (not cached)
+    -- first make sure all links are valid (cached)
+    for i=1,17 do
+        if GetInventoryItemID(unit,i) and not GetInventoryItemLink(unit,i) then
+            missing = true
+        end
+    end
+    -- not all links cached, come back next frame
+    if missing then
+        return
+    end
+    -- at this point all links are valid
+    CheckChar(unit,DraiksBrokerDB.tname) 
+
+end
+function DraiksBrokerDB:INSPECT_READY(...)
+    DraiksBrokerDB:InspectReady()
 end
 
 function DraiksBrokerDB:CHAT_MSG_ADDON(prefix, message, channel, sender)
@@ -804,30 +907,51 @@ function DraiksBrokerDB:CHAT_MSG_ADDON(prefix, message, channel, sender)
 end
  
 function Scan_Party()
-    local type="party"
-    if IsInRaid() then
-        type="raid"
-    end
-    debug_message("Total ".. type .. " Members: " .. GetNumGroupMembers() )
-    for i=1, GetNumGroupMembers() do
-      
-      table.insert(DraiksBrokerDB.scanqueue, type..i)
-      debug_message("adding " .. type..i .. " to queue")
-      i = i +1
-    end
-end
- 
-function Scan_Unit(unit)
-     caninspect, unitfound, refreshing = LibInspect:RequestData("items", unit, false)
-     if (caninspect and unitfound) then
-          debug_message("Scanning " .. unit)
-          
-     else
-	        debug_message("Cannot inspect " .. unit .." " .. GetUnitName(unit) .. " leaving them in the queue")
-     end
+    if IsInGroup() and not checkCombat() then
+        local inRaid = IsInRaid()
+        local oor
+        for i=1,GetNumGroupMembers() do
+            local unit = inRaid and "raid"..i or i==1 and "player" or "party"..(i-1)
+            local name = GetUnitName(unit,true)
+            
+            debug_message ("Have we found unit ".. name .. "? " .. tostring(isempty(DraiksBrokerDB.scanqueue[name])))
+            if isempty(DraiksBrokerDB.scanqueue[name]) and CanInspect(unit) then
+                if CheckInteractDistance(unit,1) then
+                    debug_message ("Inspecting " .. GetUnitName(unit) .. " " .. name)
+                    NotifyInspect(unit)
+                    DraiksBrokerDB.tunit = unit
+                    DraiksBrokerDB.tname = name
+                    DraiksBrokerDB:RegisterEvent("INSPECT_READY")
+                    return -- leaving
+                else
+                    oor = true
+                    debug_message (GetUnitName(unit) .. " out of range will try them later.")
+                end
+             end
+         end
+    end 
 end
 
-function storeInspectedData(returnedGuid, returnedItems, returnedAge)
+function CheckChar(targetunit, targetname)
+    local theirGUID = UnitGUID(targetunit)
+    debug_message ("Unit" .. targetname .. " " .. targetunit .. " has GUID of " .. theirGUID)
+    storeInspectedData(UnitGUID(targetunit), getInventory(targetunit))
+end
+ 
+--------------------------------------
+-- Timer Functions
+--------------------------------------
+ 
+function DraiksBrokerDB:TimerQueue()
+    Scan_Party()
+end
+
+
+--------------------------------------
+-- Data Storage Functions
+--------------------------------------
+
+function storeInspectedData(returnedGuid, returnedItems)
       returnval = false
       local class_loc, class, locRace, engRace, gender, theirName, realm = GetPlayerInfoByGUID(returnedGuid);
       local theiriLvl = CalculateUnitItemLevel(returnedItems)
@@ -836,11 +960,11 @@ function storeInspectedData(returnedGuid, returnedItems, returnedAge)
       return addUsertoDB(theirName, class, theirName, theirLevel, theiriLvl )
 end
 
-function addUsertoDB(unit,class,name,level,ilvl)
-      local theirGUID = UnitGUID(unit)
-      if UnitIsSameServer(unit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
-           debug_message("Added " .. theirName .. " to permanent table.")
-		   DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  class
+function addUsertoDB(theirUnit,theirClass,theirName,theirLevel,theiriLvl)
+      local theirGUID = UnitGUID(theirUnit)
+      if UnitIsSameServer(theirUnit, "player") and DraiksBrokerDB:GetOption('save_externals') then   --Only save units from my server
+           debug_message("Added " .. name .. " to permanent table.")
+           DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].class =  theirClass
            DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].name =  theirName
            DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].level =  theirLevel
            if theiriLvl > DraiksBrokerDB.db.global.data.partyData[theirGUID][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
@@ -848,6 +972,7 @@ function addUsertoDB(unit,class,name,level,ilvl)
            end
            -- I have them take them out of the queue
            returnval = true
+           DraiksBrokerDB.scanqueue[name] = theirName     
            DraiksBrokerDB.locals = true
       else
            debug_message("Added " .. theirName .. " to local table.")
@@ -856,80 +981,12 @@ function addUsertoDB(unit,class,name,level,ilvl)
            DraiksBrokerDB.partyiLvl[theirName] =  theiriLvl
            DraiksBrokerDB.partyName[theirName] =  theirName
            -- I have them take them out of the queue
+           DraiksBrokerDB.scanqueue[name] = theirName
            returnval = true
            DraiksBrokerDB.foreigners = true
       end
       return returnval
 
 end
- 
-function DraiksBrokerDB:TimerQueue()
-     for i,v in ipairs(DraiksBrokerDB.scanqueue) do
-      if not v then -- Null check for nothing in v
-		debug_message ("about to scan unit " .. v .. " " .. GetUnitName(v) )
-		if UnitIsUnit(v, "player") then
-		table.remove(DraiksBrokerDB.scanqueue, i)
-		debug_message("Removed unit " .. v .. " from queue as it is me")
-		else 
-          if not UnitAffectingCombat("player") then
-             if DraiksBrokerDB.db.global.data.partyData[UnitGUID(v)][DraiksBrokerDB.db.profile.options.group.formedDate].ilvl then
-                   table.remove(DraiksBrokerDB.scanqueue, i)
-		               debug_message("Removed unit " .. v .. " from queue")
-             end
-           end
-		end
-	  else
-	    debug_message ("About to scan unit but nothing found to scan at index " .. i)
-	  end
-    end
-    debug_message("Num Units in queue: ", #(DraiksBrokerDB.scanqueue))
-end
 
-function zap(table)
-    local next = next
-    local k = next(table)
-    while k do
-        table[k] = nil
-        k = next(table)
-    end
-end
 
-function check_player_in_group(name)
-    debug_message("Checking for " .. name)
-	local found = false
-    local type="party"
-    if IsInRaid() then
-        type="raid"
-    end
-    -- if its you skip it
-    if name ~= DraiksBrokerDB.pc then
-       -- loop party members
-       for i=1, GetNumGroupMembers() do
-            if GetUnitName(type .. i) == name then
-              found = true
-			  debug_message("found " .. name " at " .. type .. i)
-           end
-       end
-    end
-    return found
-end
-
-function getOwnInventory(unit)
-  myItems = {} 
-  for i =1,17 do
-     local itemLink = GetInventoryItemLink("player", i);
-     if itemLink == nil then
-       debug_message("Nothing in slot " .. i)
-     else
-       debug_message("added Item in slot " .. i)
-       myItems[i]=itemLink
-     end
-  end
-  return CalculateUnitItemLevel(myItems)
-end
-
-function debug_message(message)
-    if DraiksBrokerDB:GetOption('debug_mode') then
-	      print("DIB: " .. message)
-    end
-end
