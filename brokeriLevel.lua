@@ -907,7 +907,7 @@ function DraiksBrokerDB:CHAT_MSG_ADDON(prefix, message, channel, sender)
 end
  
 function Scan_Party()
-    if IsInGroup() and not checkCombat() then
+	if checkGroup() and not checkCombat() then
         local inRaid = IsInRaid()
         local oor
         for i=1,GetNumGroupMembers() do
@@ -936,6 +936,26 @@ function CheckChar(targetunit, targetname)
     local theirGUID = UnitGUID(targetunit)
     debug_message ("Unit" .. targetname .. " " .. targetunit .. " has GUID of " .. theirGUID)
     storeInspectedData(UnitGUID(targetunit), getInventory(targetunit))
+end
+
+function checkGroup()
+	localgroupval = false
+	-- Normal Group
+	if IsInGroup() then
+		localgroupval = true
+		debug_message ("User in local Group")
+	end
+	-- Normal Ra9d
+	if IsInRaid() then
+		localgroupval = true
+		debug_message ("User in local Raid")
+	end
+	-- LFR Group in case the checks above didnt catch that we were in LFG / LFR
+	if GetNumGroupMembers(LE_PARTY_CATEGORY_INSTANCE) > 0 then
+		localgroupval= true
+		debug_message ("User foundin LFG/LFR")
+	end	
+	return localgroupval
 end
  
 --------------------------------------
