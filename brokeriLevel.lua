@@ -32,7 +32,7 @@ local baseFont = CreateFont("baseFont")
 if LibSharedMedia:IsValid('font', ElvUI[1].db.general.font) then
     baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
 else
-    baseFont:SetFont(baseFont:GetFont(), 10)
+	baseFont:SetFont(GameTooltipText:GetFont(), 10)
 end
 
 -- Setup Display Fonts
